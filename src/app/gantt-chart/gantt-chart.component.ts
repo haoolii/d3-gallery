@@ -183,10 +183,10 @@ export class GanttChartComponent implements OnInit {
         .append('rect')
         .attr('class', (node) => node.data.name)
         .on('click', (mouseEvent, node) => this.click(mouseEvent, node))
+        .call(toTargetX)
+        .call(toTargetY)
         .call(targetWidth)
         .call(targetHeight)
-        .call(toTargetX)
-        .call(toTargetY);
 
       gantts
         .exit()
