@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { NzModalRef, NzModalService } from 'ng-zorro-antd/modal';
+import { CodeEditorComponent } from './code-editor/code-editor.component';
 
 @Component({
   selector: 'app-root',
@@ -95,4 +97,26 @@ export class AppComponent {
         ],
     },
 ];
+
+    constructor(private modal: NzModalService) {
+
+    }
+
+    popCodeEditor(code: string): void {
+      console.log(code);
+        this.modal.create({
+            nzTitle: 'Data',
+            nzContent: CodeEditorComponent,
+            nzWidth: 700,
+            nzBodyStyle: { height: '65vh'},
+            nzFooter: null,
+            nzMaskClosable: true,
+            nzClosable: true,
+            nzComponentParams: {
+              inputCode: JSON.stringify(code, null, '\t')
+            },
+            nzOnOk: () => console.log('Click ok')
+          });
+    }
+
 }

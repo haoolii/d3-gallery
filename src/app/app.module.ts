@@ -11,12 +11,14 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GanttChartComponent } from './gantt-chart/gantt-chart.component';
+import { CodeEditorComponent } from './code-editor/code-editor.component';
 registerLocaleData(zh);
 
 @NgModule({
   declarations: [
     AppComponent,
-    GanttChartComponent
+    GanttChartComponent,
+    CodeEditorComponent
   ],
   imports: [
     BrowserModule,

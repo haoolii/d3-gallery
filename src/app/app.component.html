@@ -3,7 +3,7 @@ NG-ZORRO
   <nz-divider nzOrientation="left" nzText="Horizontal"></nz-divider>
   <div nz-row [nzGutter]="[16, 16]" style="width:100%; max-width: 1080px;">
     <div nz-col [nzSpan]="24">
-      <nz-card nzHoverable="true">
+      <nz-card nzTitle="Gantt Chart" nzHoverable="true" [nzExtra]="showCodeBtnTpl">
         <app-gantt-chart
           [series]="series"
         ></app-gantt-chart>
@@ -25,6 +25,13 @@ NG-ZORRO
     </div>
   </div>
 </div>
+
+<ng-template #showCodeBtnTpl let-code="code">
+  <button nz-button nzType="primary" (click)="popCodeEditor(series)">
+    <i nz-icon nzType="code" nzTheme="outline"></i>
+  </button>
+</ng-template>
+
 <!-- <a href="https://github.com/NG-ZORRO/ng-zorro-antd" target="_blank" style="display: flex;align-items: center;justify-content: center;height: 100%;width: 100%;">
   <img height="300" src="https://img.alicdn.com/tfs/TB1X.qJJgHqK1RjSZFgXXa7JXXa-89-131.svg">
 </a> -->
