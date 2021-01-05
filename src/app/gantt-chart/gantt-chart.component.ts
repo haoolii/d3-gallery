@@ -3,7 +3,6 @@ import * as d3 from 'd3';
 import { clone } from './clone';
 import { v4 as uuidv4 } from 'uuid';
 
-
 export interface SerieGantt {
   name: string;
   start: Date;
@@ -29,19 +28,22 @@ export interface SerieGanttNode {
 export class GanttChartComponent implements OnInit {
   @ViewChild('svgRef') svgRef: ElementRef<any>;
 
-  private rootSymbol = uuidv4();
+  private rootKEY = uuidv4();
+
+  serieSource;
   /**
    * 資料源
    */
   @Input()
   set series(series: SerieGantt[]) {
-    this.seriesNodes = this.preProcess({
+    this.serieSource = {
       name: 'root',
-      key: this.rootSymbol,
+      key: this.rootKEY,
       start: null,
       end: null,
       data: clone(series)
-    });
+    };
+    this.seriesNodes = this.preProcess(this.serieSource);
     this.seriesNodeMap = this.seriesNodes.reduce((acc, curr) => ({ ...acc, [curr.data.key]: curr }), {})
   }
 
@@ -102,11 +104,11 @@ export class GanttChartComponent implements OnInit {
     let _seriesNodes: SerieGanttNode[] = [];
 
     d3
-      .hierarchy(clone(series), serie => serie.data)
+      .hierarchy(series, serie => serie.data)
       .eachBefore(node => _seriesNodes = [..._seriesNodes, node]);
 
     return _seriesNodes
-              .filter(node => node.data.key !== this.rootSymbol)
+              .filter(node => node.data.key !== this.rootKEY)
               .map(node => {
                 node.data.key = uuidv4();
                 node.data.start = new Date(node.data.start);
@@ -129,8 +131,8 @@ export class GanttChartComponent implements OnInit {
     this.xScale = d3.scaleTime().range([0, this.canvasWidth]).domain(this.xExtent);
     this.yScale = d3
         .scaleBand()
+        .domain(this.seriesNodes.map(node => node.data.key))
         .range([0, this.canvasHeight])
-        .domain(this.seriesNodes.map(node => node.data.key));
   }
 
   computeAxis(): void {
@@ -154,12 +156,11 @@ export class GanttChartComponent implements OnInit {
   }
 
   renderAxis(): void {
-    this.xAxisLayer.attr('class', 'axis x-axis').call(this.xAxis);
-    this.yAxisLayer.attr('class', 'axis x-axis').call(this.yAxis);
+    this.xAxisLayer.attr('class', 'axis x-axis').transition().call(this.xAxis);
+    this.yAxisLayer.attr('class', 'axis x-axis').transition().call(this.yAxis);
   }
 
   renderGantt(): void {
-    this.ganttLayer.select('*').remove();
     const targetHeight = selection => selection.attr('height', (node, i) => this.yScale.bandwidth() * 0.7);
     const targetWidth = selection => selection.attr('width', (node, i) => this.xScale(node.data.end) - this.xScale(node.data.start));
     const toTargetX = selection => selection.attr('x', (node, i) => this.xScale(node.data.start));
@@ -171,10 +172,16 @@ export class GanttChartComponent implements OnInit {
         .data(this.seriesNodes, (node: SerieGanttNode) => node.data.key)
 
       gantts
+        .transition()
+        .call(targetWidth)
+        .call(targetHeight)
+        .call(toTargetX)
+        .call(toTargetY);
+
+      gantts
         .enter()
         .append('rect')
         .attr('class', (node) => node.data.name)
-        .attr('fill', (node) => 'black')
         .on('click', (mouseEvent, node) => this.click(mouseEvent, node))
         .call(targetWidth)
         .call(targetHeight)
@@ -186,7 +193,14 @@ export class GanttChartComponent implements OnInit {
         .remove();
   }
 
-  // 甘特圖點擊事件，需要隱藏甘特圖
+  //
+  /**
+   * Task被點擊時，需要隱藏子Task。
+   * 透過隱藏資料的方式，讓對應的Task隱藏。
+   *
+   * @param mouseEvent 滑鼠事件
+   * @param node 資料點
+   */
   click(mouseEvent, node) {
     if (node.data.data) {
         node.data._data = node.data.data;
@@ -195,17 +209,25 @@ export class GanttChartComponent implements OnInit {
         node.data.data = node.data._data;
         node.data._data = null;
     }
+    this.seriesNodes = this.preProcess(this.serieSource);
+    this.seriesNodeMap = this.seriesNodes.reduce((acc, curr) => ({ ...acc, [curr.data.key]: curr }), {})
+    this.go();
 }
 
   /**
-   * 整體SVG長寬比例變化
+   * 整體SVG去除Padding後的寬度
+   * (實際繪圖區域大小)
    */
   get canvasWidth(): number {
-    return this.width - (this.padding.left + this.padding.right);
+    return this.viewBoxWidth - (this.padding.left + this.padding.right);
   }
 
+  /**
+   * 整體SVG去除Padding後的長度
+   * (實際繪圖區域大小)
+   */
   get canvasHeight(): number {
-    return this.height - (this.padding.top + this.padding.bottom);
+    return this.viewBoxHeight - (this.padding.top + this.padding.bottom);
   }
 
   /**
@@ -245,7 +267,7 @@ export class GanttChartComponent implements OnInit {
 }
 
   get viewBoxHeight() {
-      return this.height;
+      return this.seriesNodes.length * 40;
   }
 
   get svgViewBox(): string {
