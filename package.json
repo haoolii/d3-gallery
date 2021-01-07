@@ -4,7 +4,7 @@
   "scripts": {
     "postinstall": "ngcc",
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --hmr",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
