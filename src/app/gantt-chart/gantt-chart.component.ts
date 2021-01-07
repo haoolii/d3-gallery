@@ -90,9 +90,16 @@ export class GanttChartComponent implements OnInit {
   }
 
   go(): void {
+    /** 計算最大值最小值 */
     this.computeExtent();
+
+    /** 計算Scale */
     this.computeScale();
+
+    /** 計算Axis */
     this.computeAxis();
+
+    /** 渲染畫面 */
     this.render();
   }
 
@@ -103,6 +110,7 @@ export class GanttChartComponent implements OnInit {
   preProcess(series: SerieGantt): SerieGanttNode[] {
     let _seriesNodes: SerieGanttNode[] = [];
 
+    /** 使用d3.hierarchy，遍經樹狀結構。並使用前序(preOrder)尋訪節點 */
     d3
       .hierarchy(series, serie => serie.data)
       .eachBefore(node => _seriesNodes = [..._seriesNodes, node]);
@@ -110,7 +118,10 @@ export class GanttChartComponent implements OnInit {
     return _seriesNodes
               .filter(node => node.data.key !== this.rootKEY)
               .map(node => {
+                /** 使用uuidv4產生獨立key */
                 node.data.key = uuidv4();
+
+                /** 轉換時間字串至Date */
                 node.data.start = new Date(node.data.start);
                 node.data.end = new Date(node.data.end);
                 return node;
@@ -118,7 +129,7 @@ export class GanttChartComponent implements OnInit {
   }
 
   /**
-   * 計算Extent, Scale, Axis
+   * 計算Extent，算出X的最大時間與最小時間。
    */
   computeExtent(): void {
     this.xExtent = [
@@ -127,6 +138,9 @@ export class GanttChartComponent implements OnInit {
     ];
   }
 
+  /**
+   * 計算Scale，算出X軸與Y軸資料對應畫面的比例
+   */
   computeScale(): void {
     this.xScale = d3.scaleTime().range([0, this.canvasWidth]).domain(this.xExtent);
     this.yScale = d3
@@ -135,6 +149,9 @@ export class GanttChartComponent implements OnInit {
         .range([0, this.canvasHeight])
   }
 
+  /**
+   * 產生XY坐標軸
+   */
   computeAxis(): void {
     this.yAxis = d3.axisLeft(this.yScale)
         .tickSize(-this.canvasWidth)
@@ -148,7 +165,7 @@ export class GanttChartComponent implements OnInit {
 
 
   /**
-   * Render
+   * Render渲染坐標軸與甘特圖
    */
   render(): void {
     this.renderAxis();
@@ -171,6 +188,7 @@ export class GanttChartComponent implements OnInit {
         .selectAll('rect')
         .data(this.seriesNodes, (node: SerieGanttNode) => node.data.key)
 
+      /** UPDATE */
       gantts
         .transition()
         .call(targetWidth)
@@ -178,6 +196,7 @@ export class GanttChartComponent implements OnInit {
         .call(toTargetX)
         .call(toTargetY);
 
+      /** ENTER */
       gantts
         .enter()
         .append('rect')
@@ -188,12 +207,12 @@ export class GanttChartComponent implements OnInit {
         .call(targetWidth)
         .call(targetHeight)
 
+      /** EXIT */
       gantts
         .exit()
         .remove();
   }
 
-  //
   /**
    * Task被點擊時，需要隱藏子Task。
    * 透過隱藏資料的方式，讓對應的Task隱藏。
@@ -209,8 +228,13 @@ export class GanttChartComponent implements OnInit {
         node.data.data = node.data._data;
         node.data._data = null;
     }
+    /** 隱藏完子資料後，需要重新遍歷及產生節點 */
     this.seriesNodes = this.preProcess(this.serieSource);
+
+    /** 隱藏完子資料後，需要重新產生Map */
     this.seriesNodeMap = this.seriesNodes.reduce((acc, curr) => ({ ...acc, [curr.data.key]: curr }), {})
+
+    /** 重新計算及渲染 */
     this.go();
 }
 
@@ -264,7 +288,7 @@ export class GanttChartComponent implements OnInit {
 
   get viewBoxWidth() {
     return this.width;
-}
+  }
 
   get viewBoxHeight() {
       return this.seriesNodes.length * 40;
