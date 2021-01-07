@@ -5,15 +5,15 @@ NG-ZORRO
     <div nz-col [nzSpan]="24">
       <nz-card nzTitle="Gantt Chart" nzHoverable="true" [nzExtra]="showCodeBtnTpl">
         <app-gantt-chart
-          [series]="series"
+          [series]="ganttSeries"
         ></app-gantt-chart>
       </nz-card>
     </div>
     <div nz-col [nzSpan]="24">
-      <nz-card nzHoverable="true">
-        <p>Card content</p>
-        <p>Card content</p>
-        <p>Card content</p>
+      <nz-card nzTitle="Tree Chart" nzHoverable="true">
+        <app-tree-chart
+          [series]="treeSeries"
+        ></app-tree-chart>
       </nz-card>
     </div>
     <div nz-col [nzSpan]="24">
@@ -26,8 +26,8 @@ NG-ZORRO
   </div>
 </div>
 
-<ng-template #showCodeBtnTpl let-code="code">
-  <button nz-button nzType="primary" (click)="popCodeEditor(series)">
+<ng-template #showCodeBtnTpl>
+  <button nz-button nzType="primary" (click)="popCodeEditor(ganttSeries)">
     <i nz-icon nzType="code" nzTheme="outline"></i>
   </button>
 </ng-template>

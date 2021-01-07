@@ -12,13 +12,15 @@ import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GanttChartComponent } from './gantt-chart/gantt-chart.component';
 import { CodeEditorComponent } from './code-editor/code-editor.component';
+import { TreeChartComponent } from './tree-chart/tree-chart.component';
 registerLocaleData(zh);
 
 @NgModule({
   declarations: [
     AppComponent,
     GanttChartComponent,
-    CodeEditorComponent
+    CodeEditorComponent,
+    TreeChartComponent
   ],
   imports: [
     BrowserModule,
