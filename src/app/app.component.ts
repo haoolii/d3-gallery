@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NzModalRef, NzModalService } from 'ng-zorro-antd/modal';
+import { NzModalService } from 'ng-zorro-antd/modal';
 import { CodeEditorComponent } from './code-editor/code-editor.component';
 
 @Component({
@@ -166,5 +166,4 @@ export class AppComponent {
             nzOnOk: () => console.log('Click ok')
           });
     }
-
 }
