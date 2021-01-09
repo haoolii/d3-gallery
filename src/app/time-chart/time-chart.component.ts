@@ -94,7 +94,7 @@ export class TimeChartComponent implements OnInit {
    */
   computeScale(): void {
     this.xScale = d3.scaleTime().domain(this.xExtent).range([0, this.canvasWidth]).nice();
-    this.yScale = d3.scaleLinear().domain(this.yExtent).range([0, this.canvasHeight]);
+    this.yScale = d3.scaleLinear().domain(this.yExtent).range([this.canvasHeight, 0]);
   }
 
   /**
@@ -129,7 +129,23 @@ export class TimeChartComponent implements OnInit {
   /**
    * Render Line
    */
-  renderLine(): void {}
+  renderLine(): void {
+    let line = d3.line<Serie>()
+                .x(d => this.xScale(d.date))
+                .y(d => this.yScale(d.price))
+
+    let lines = this.linesLayer
+                  .selectAll('path')
+                  .data<Serie[]>([this.series])
+
+    let enter = lines.enter().append<d3.BaseType>('path');
+
+    enter.merge(lines)
+      .attr('d', line)
+      .attr('fill', 'none')
+      .attr('stroke', 'black')
+      .attr('stroke-width', 1)
+  }
 
 
   /**
