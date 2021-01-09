@@ -10,6 +10,11 @@ NG-ZORRO
       </nz-card>
     </div>
     <div nz-col [nzSpan]="24">
+      <nz-card nzTitle="Time Chart" nzHoverable="true">
+        <app-time-chart></app-time-chart>
+      </nz-card>
+    </div>
+    <div nz-col [nzSpan]="24">
       <nz-card nzTitle="Tree Chart" nzHoverable="true">
         <app-tree-chart
           [series]="treeSeries"

@@ -13,6 +13,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GanttChartComponent } from './gantt-chart/gantt-chart.component';
 import { CodeEditorComponent } from './code-editor/code-editor.component';
 import { TreeChartComponent } from './tree-chart/tree-chart.component';
+import { TimeChartComponent } from './time-chart/time-chart.component';
 registerLocaleData(zh);
 
 @NgModule({
@@ -20,7 +21,8 @@ registerLocaleData(zh);
     AppComponent,
     GanttChartComponent,
     CodeEditorComponent,
-    TreeChartComponent
+    TreeChartComponent,
+    TimeChartComponent
   ],
   imports: [
     BrowserModule,
