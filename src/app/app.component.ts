@@ -98,11 +98,58 @@ export class AppComponent {
       },
     ];
 
-    treeSeries = {}
-
-    constructor(private modal: NzModalService) {
-
+    treeSeries = {
+      name:"root",
+      children:[
+          {
+              name:"source.1",
+              children:[
+                  {name:"source.1.1"},
+                  {name:"source.1.2"},
+                  {name:"source.1.3"},
+                  {name:"source.1.4"}
+              ]
+          },
+          {
+              name:"source.2",
+              children:[
+                  {
+                      name:"source.2.1",
+                      children:[
+                          {name:"source.2.1.1"},
+                          {name:"source.2.1.2"},
+                          {name:"source.2.1.3"},
+                          {name:"source.2.1.4"}
+                      ]
+                  },
+                  {name:"source.2.2"},
+                  {name:"source.2.3"},
+                  {name:"source.2.4"}
+              ]
+          },
+          {
+              name:"source.3",
+              children:[
+                  {name:"source.3.1"},
+                  {name:"source.3.2"},
+                  {name:"source.3.3"},
+                  {name:"source.3.4"}
+              ]
+          },
+          {
+              name:"source.4" ,
+              children:
+              [
+                  {name:"source.4.1"},
+                  {name:"source.4.2"},
+                  {name:"source.4.3"},
+                  {name:"source.4.4"}
+              ]
+          }
+      ]
     }
+
+    constructor(private modal: NzModalService) { }
 
     popCodeEditor(code: string): void {
         this.modal.create({
