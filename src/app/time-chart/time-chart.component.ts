@@ -1,9 +1,7 @@
-import { HttpClient } from '@angular/common/http';
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { v4 as uuidv4 } from 'uuid';
 
 interface BTCraw {
   "24h High (USD)": string;
@@ -26,14 +24,6 @@ interface Serie {
 })
 export class TimeChartComponent implements OnInit {
   @ViewChild('svgRef') svgRef: ElementRef<any>;
-
-  private rootKEY = uuidv4();
-
-  serieSource;
-  /**
-   * 資料源
-   */
-  @Input() series;
 
   /**
    * 寬度(default: 800)
@@ -58,10 +48,86 @@ export class TimeChartComponent implements OnInit {
     left: 55
   };
 
-  constructor(private http: HttpClient) {
+  series: Serie[] = [];
+
+  xScale: d3.ScaleTime<number, number, never>;
+  yScale;
+  xExtent: [Date, Date];
+  yExtent: [number, number];
+  xAxis;
+  yAxis;
+
+  constructor() {
   }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {
+    this.getData().subscribe(resp => {
+      this.series = resp;
+      this.go();
+    });
+  }
+
+  go(): void {
+    this.compute();
+    this.render();
+  }
+
+  /**
+   * Compute 相關
+   */
+  compute(): void {
+    this.computeExtent();
+    this.computeScale();
+    this.computeAxis();
+  }
+
+  /**
+   * Compute Extent
+   */
+  computeExtent(): void {
+    this.xExtent = d3.extent(this.series.map(serie => serie.date));
+    this.yExtent = d3.extent(this.series.map(serie => serie.price));
+  }
+
+  /**
+   * Compute Scale
+   */
+  computeScale(): void {
+    this.xScale = d3.scaleTime().domain(this.xExtent).range([0, this.canvasWidth]);
+    this.yScale = d3.scaleLinear().domain(this.yExtent).range([0, this.canvasHeight]);
+  }
+
+  /**
+   * Compute Axis
+   */
+  computeAxis(): void {
+    this.yAxis = d3.axisLeft(this.yScale)
+        .tickSize(-this.canvasWidth);
+
+    this.xAxis = d3
+        .axisTop(this.xScale)
+        .tickSizeOuter(0)
+        .tickSize(-this.canvasHeight);
+  }
+
+  /**
+   * Render 相關
+   */
+  render(): void {
+    this.renderAxis();
+    this.renderLine();
+  }
+
+  /**
+   * Render Axis
+   */
+  renderAxis(): void {}
+
+  /**
+   * Render Line
+   */
+  renderLine(): void {}
+
 
   /**
    * 取得比特幣報價
