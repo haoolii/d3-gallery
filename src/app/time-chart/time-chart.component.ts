@@ -42,8 +42,8 @@ export class TimeChartComponent implements OnInit {
    * 退縮Axis比例尺的尺標字體，以免遮擋
    */
   @Input() padding = {
-    top: 15,
-    right: 15,
+    top: 20,
+    right: 20,
     bottom: 15,
     left: 55
   };
@@ -93,7 +93,7 @@ export class TimeChartComponent implements OnInit {
    * Compute Scale
    */
   computeScale(): void {
-    this.xScale = d3.scaleTime().domain(this.xExtent).range([0, this.canvasWidth]);
+    this.xScale = d3.scaleTime().domain(this.xExtent).range([0, this.canvasWidth]).nice();
     this.yScale = d3.scaleLinear().domain(this.yExtent).range([0, this.canvasHeight]);
   }
 
@@ -106,8 +106,8 @@ export class TimeChartComponent implements OnInit {
 
     this.xAxis = d3
         .axisTop(this.xScale)
-        .tickSizeOuter(0)
-        .tickSize(-this.canvasHeight);
+        .tickSizeOuter(-this.canvasHeight)
+        .ticks(12,  d3.utcFormat("%Y/%m"))
   }
 
   /**
@@ -121,7 +121,10 @@ export class TimeChartComponent implements OnInit {
   /**
    * Render Axis
    */
-  renderAxis(): void {}
+  renderAxis(): void {
+    this.xAxisLayer.attr('class', 'axis x-axis').transition().call(this.xAxis);
+    this.yAxisLayer.attr('class', 'axis y-axis').transition().call(this.yAxis);
+  }
 
   /**
    * Render Line
