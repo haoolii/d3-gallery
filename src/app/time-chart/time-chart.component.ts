@@ -59,6 +59,9 @@ export class TimeChartComponent implements OnInit {
   yAxis;
   zoom;
   zoomX;
+  tooltipLineX;
+  tooltipLineY;
+  tooltipCircle;
 
   constructor() {
   }
@@ -66,8 +69,31 @@ export class TimeChartComponent implements OnInit {
   ngOnInit(): void {
     this.getData().subscribe(resp => {
       this.series = resp;
+      this.justGoFirst();
       this.go();
     });
+  }
+
+  justGoFirst() {
+    this.svgSelection
+      .on('mousemove', event => this.renderToolTip(event))
+      .on('mouseout', event => this.removeToolTip(event))
+
+    this.tooltipLineY = this.tooltipLayer
+                  .append('line')
+                  .attr('stroke-dasharray', '4')
+                  .classed('tooltip-line', true);
+
+    this.tooltipLineX = this.tooltipLayer
+                  .append('line')
+                  .attr('stroke-dasharray', '4')
+                  .classed('tooltip-line', true);
+
+    this.tooltipCircle = this.tooltipLayer
+                  .append('circle')
+                  .attr('r', 4)
+                  .attr('fill', 'none')
+                  .classed('tooltip-circle', true);
   }
 
   go(): void {
@@ -138,7 +164,6 @@ export class TimeChartComponent implements OnInit {
     this.yScale.range([this.canvasHeight, 0].map(d => event.transform.applyY(d)));
     this.computeAxis();
     this.render();
-
   }
 
   /**
@@ -188,7 +213,49 @@ export class TimeChartComponent implements OnInit {
       .attr('stroke-width', 1)
   }
 
+  renderToolTip(event): void {
+    /** 原始x, y，沒有padding */
+    const [sx, sy] = d3.pointer(event);
+    /** 轉換成有padding的位置 */
+    const x = sx - this.padding.left;
+    const y = sy - this.padding.top;
 
+    if (x > this.canvasWidth || y < 0) return;
+
+    /** 取得目前滑鼠位置的時間位置 */
+    const xTime = this.xScale.invert(x);
+
+    /** 使用等分線找出對應目前時間最近的右邊資料 */
+    const bisectDate = d3.bisector<Serie, any>(d => d.date).right;
+    const data = this.series[bisectDate(this.series, xTime)];
+
+    /** 繪製ToolTip Line, 使用找到的data繪製 */
+    this.tooltipLineX
+        .attr('stroke', 'black')
+        .attr('x1', 0)
+        .attr('x2', this.canvasWidth)
+        .attr('y1', this.yScale(data.price))
+        .attr('y2', this.yScale(data.price));
+
+    this.tooltipLineY
+        .attr('stroke', 'black')
+        .attr('x1', this.xScale(data.date))
+        .attr('x2', this.xScale(data.date))
+        .attr('y1', 0)
+        .attr('y2', this.canvasHeight);
+
+    /** 繪製ToolTip Circle, 使用找到的data繪製 */
+    this.tooltipCircle
+        .attr('cx', this.xScale(data.date))
+        .attr('cy', this.yScale(data.price))
+        .attr('fill', '#fcc117')
+        .raise()
+
+  }
+
+  removeToolTip(event): void {
+    // this.tooltipLine && this.tooltipLine.attr('stroke', 'none');
+  }
   /**
    * 取得比特幣報價
    */
@@ -238,6 +305,9 @@ export class TimeChartComponent implements OnInit {
   }
   get linesLayer(): d3.Selection<any, unknown, null, undefined> {
     return this.svgSelection.select('#linesLayer');
+  }
+  get tooltipLayer(): d3.Selection<any, unknown, null, undefined> {
+    return this.svgSelection.select('#tooltipLayer');
   }
 
   /**

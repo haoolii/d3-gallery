@@ -1,3 +1,11 @@
+svg {
+  cursor: crosshair;
+}
+
 .y-axis .tick line {
   opacity: 0.2;
+}
+
+.tooltip-line {
+  opacity: 0.8;
 }
