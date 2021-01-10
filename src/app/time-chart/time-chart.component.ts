@@ -174,9 +174,9 @@ export class TimeChartComponent implements OnInit {
       [this.canvasWidth, this.canvasHeight],
     ];
     this.zoom = d3.zoom()
-                .scaleExtent([1, 4])
-                .extent(extent as any)
-                .translateExtent(extent as any)
+                .scaleExtent([1, 4]) // 1-4倍
+                .extent(extent as any) // 最大最小區間
+                .translateExtent(extent as any)  // 縮放最大最小區間
                 .on('zoom', event => this.zoomed(event));
     this.svgSelection.call(this.zoom);
   }
@@ -188,8 +188,14 @@ export class TimeChartComponent implements OnInit {
   zoomed(event): void {
     /** 按下Ctrl時禁止Zoom */
     if (this.isCtrlKeydown) return;
+
+    /** 調整Scale的Range達成放大或縮小 */
     this.yScale.range([this.canvasHeight, 0].map(d => event.transform.applyY(d)));
+
+    /** 重新計算Axis */
     this.computeAxis();
+
+    /** 重新渲染畫面 */
     this.render();
   }
 
