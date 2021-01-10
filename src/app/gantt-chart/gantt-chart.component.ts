@@ -197,38 +197,42 @@ export class GanttChartComponent implements OnInit {
   }
 
   renderGantt(): void {
-    const targetHeight = selection => selection.attr('height', (node, i) => this.yScale.bandwidth() * 0.7);
-    const targetWidth = selection => selection.attr('width', (node, i) => this.xScale(node.data.end) - this.xScale(node.data.start));
-    const toTargetX = selection => selection.attr('x', (node, i) => this.xScale(node.data.start));
-    const toTargetY = selection => selection.attr('y', (node, i) => this.yScale(node.data.key) + this.yScale.bandwidth() * 0.15);
+    const ganttHeight = selection => selection.attr('height', node => this.yScale.bandwidth() * 0.7);
+    const ganttWidth = selection => selection.attr('width', node => this.xScale(node.data.end) - this.xScale(node.data.start));
+    const transform = selection => selection.attr('transform', node => `translate(${this.xScale(node.data.start)}, ${this.yScale(node.data.key) + this.yScale.bandwidth() * 0.15})`);
 
-    const gantts =
+    /** Select And Update */
+    const g =
       this.ganttLayer
-        .selectAll('rect')
+        .selectAll('g')
         .data(this.seriesNodes, (node: SerieGanttNode) => node.data.key)
-
-      /** UPDATE */
-      gantts
-        .transition()
-        .call(targetWidth)
-        .call(targetHeight)
-        .call(toTargetX)
-        .call(toTargetY);
+        .call(transform);
 
       /** ENTER */
-      gantts
+      let enter = g
         .enter()
+        .append('g')
+        .call(transform)
+
+      enter
         .append('rect')
         .attr('class', (node) => node.data.name)
         .attr('fill', node => this.color(node.data.key))
+        .call(ganttWidth)
+        .call(ganttHeight)
         .on('click', (mouseEvent, node) => this.click(mouseEvent, node))
-        .call(toTargetX)
-        .call(toTargetY)
-        .call(targetWidth)
-        .call(targetHeight)
+
+      enter
+        .append('text')
+        .text(node => node.data.name)
+        .attr('font-size', '0.7em')
+        .attr('fill', 'white')
+        .attr('x', '5px')
+        .attr('y', node => `${this.yScale.bandwidth() * 0.5}px`)
+        .attr('dy', node => `-.35em`)
 
       /** EXIT */
-      gantts
+      g
         .exit()
         .remove();
   }
