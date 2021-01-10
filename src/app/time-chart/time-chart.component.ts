@@ -198,19 +198,35 @@ export class TimeChartComponent implements OnInit {
                 .x(d => this.xScale(d.date))
                 .y(d => this.yScale(d.price))
 
+    let area = d3.area<Serie>()
+              .x(d => this.xScale(d.date))
+              .y1(d => this.yScale(d.price))
+              .y0(d => this.yScale(-5500))
+
     let lines = this.linesLayer
-                  .selectAll('path')
+                  .selectAll('path.line')
                   .data<Serie[]>([this.series])
 
-    let enter = lines.enter().append<d3.BaseType>('path');
+    let areas = this.linesLayer
+                  .selectAll('path.area')
+                  .data<Serie[]>([this.series])
 
-    enter.merge(lines)
+    let enterLines = lines.enter().append<d3.BaseType>('path').classed('line', true);
+    let enterAreas = lines.enter().append<d3.BaseType>('path').classed('area', true)
+
+    enterAreas.merge(areas)
+      .transition()
+      .duration(50)
+      .attr('d', area)
+      .attr('fill', 'url(#areaColor)')
+
+    enterLines.merge(lines)
       .transition()
       .duration(50)
       .attr('d', line)
       .attr('fill', 'none')
-      .attr('stroke', 'black')
-      .attr('stroke-width', 1)
+      .attr('stroke', '#fcc117')
+      .attr('stroke-width', 2)
   }
 
   renderToolTip(event): void {
