@@ -2,6 +2,8 @@ import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
 import { clone } from './clone';
 import { v4 as uuidv4 } from 'uuid';
+import d3Tip from 'd3-tip';
+import { ViewEncapsulation } from '@angular/core';
 
 export interface SerieGantt {
   name: string;
@@ -23,7 +25,8 @@ export interface SerieGanttNode {
 @Component({
   selector: 'app-gantt-chart',
   templateUrl: './gantt-chart.component.html',
-  styleUrls: ['./gantt-chart.component.scss']
+  styleUrls: ['./gantt-chart.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class GanttChartComponent implements OnInit {
   @ViewChild('svgRef') svgRef: ElementRef<any>;
@@ -81,13 +84,27 @@ export class GanttChartComponent implements OnInit {
   xAxis;
   yAxis;
   color;
+  toolTip;
+  timeFormate = d3.timeFormat('%Y-%m-%d %H:%M');
 
   constructor() { }
 
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
+    this.justGoFirst();
     this.go();
+  }
+
+  justGoFirst(): void {
+    const tipTplFn = (event, data) => `
+      <div class="tip">
+        Name: ${data.data.name} <br />
+        Start: ${this.timeFormate(data.data.start)} <br />
+        End: ${this.timeFormate(data.data.end)} <br />
+      </div>
+      `;
+    this.toolTip = d3Tip().html(tipTplFn);
   }
 
   go(): void {
@@ -214,6 +231,8 @@ export class GanttChartComponent implements OnInit {
         .append('g')
         .call(transform)
 
+      enter.call(this.toolTip);
+
       enter
         .append('rect')
         .attr('class', (node) => node.data.name)
@@ -221,6 +240,8 @@ export class GanttChartComponent implements OnInit {
         .call(ganttWidth)
         .call(ganttHeight)
         .on('click', (mouseEvent, node) => this.click(mouseEvent, node))
+        .on('mouseover', this.toolTip.show)
+        .on('mouseout', this.toolTip.hide)
 
       enter
         .append('text')
