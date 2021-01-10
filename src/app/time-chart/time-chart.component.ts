@@ -1,7 +1,7 @@
 import { Component, ElementRef, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
-import { from, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { from, fromEvent, merge, Observable, Subject } from 'rxjs';
+import { map, takeUntil } from 'rxjs/operators';
 
 interface BTCraw {
   "24h High (USD)": string;
@@ -24,6 +24,8 @@ interface Serie {
   encapsulation: ViewEncapsulation.None
 })
 export class TimeChartComponent implements OnInit {
+  private destory$ = new Subject();
+
   @ViewChild('svgRef') svgRef: ElementRef<any>;
 
   /**
@@ -63,6 +65,8 @@ export class TimeChartComponent implements OnInit {
   tooltipLineY;
   tooltipCircle;
 
+  isCtrlKeydown = false;
+
   constructor() {
   }
 
@@ -75,9 +79,25 @@ export class TimeChartComponent implements OnInit {
   }
 
   justGoFirst() {
+
+    merge(
+      fromEvent<KeyboardEvent>(window, 'keyup'),
+      fromEvent<KeyboardEvent>(window, 'keydown')
+    ).pipe(
+      takeUntil(this.destory$),
+      map(event => event.ctrlKey)
+    )
+    .subscribe(isCtrl => {
+      this.isCtrlKeydown = isCtrl;
+      if (this.isCtrlKeydown) { }
+    });
+
     this.svgSelection
       .on('mousemove', event => this.renderToolTip(event))
       .on('mouseout', event => this.removeToolTip(event))
+      .on('click', event => {
+        if (this.isCtrlKeydown) { }
+      })
 
     this.tooltipLineY = this.tooltipLayer
                   .append('line')
@@ -161,6 +181,8 @@ export class TimeChartComponent implements OnInit {
    * Zoom事件
    */
   zoomed(event): void {
+    /** 按下Ctrl時禁止Zoom */
+    if (this.isCtrlKeydown) return;
     this.yScale.range([this.canvasHeight, 0].map(d => event.transform.applyY(d)));
     this.computeAxis();
     this.render();
@@ -343,5 +365,10 @@ export class TimeChartComponent implements OnInit {
 
   get svgViewBox(): string {
     return `0 0 ${this.viewBoxWidth} ${this.viewBoxHeight}`;
+  }
+
+  ngOnDestroy(): void {
+    this.destory$.next();
+    this.destory$.complete();
   }
 }
