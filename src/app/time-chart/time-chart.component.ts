@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -20,7 +20,8 @@ interface Serie {
 @Component({
   selector: 'app-time-chart',
   templateUrl: './time-chart.component.html',
-  styleUrls: ['./time-chart.component.scss']
+  styleUrls: ['./time-chart.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class TimeChartComponent implements OnInit {
   @ViewChild('svgRef') svgRef: ElementRef<any>;
@@ -42,9 +43,9 @@ export class TimeChartComponent implements OnInit {
    * 退縮Axis比例尺的尺標字體，以免遮擋
    */
   @Input() padding = {
-    top: 20,
+    top: 15,
     right: 20,
-    bottom: 15,
+    bottom: 20,
     left: 55
   };
 
@@ -56,6 +57,8 @@ export class TimeChartComponent implements OnInit {
   yExtent: [number, number];
   xAxis;
   yAxis;
+  zoom;
+  zoomX;
 
   constructor() {
   }
@@ -79,6 +82,7 @@ export class TimeChartComponent implements OnInit {
     this.computeExtent();
     this.computeScale();
     this.computeAxis();
+    this.computeZoom();
   }
 
   /**
@@ -105,9 +109,36 @@ export class TimeChartComponent implements OnInit {
         .tickSize(-this.canvasWidth);
 
     this.xAxis = d3
-        .axisTop(this.xScale)
+        .axisBottom(this.xScale)
         .tickSizeOuter(-this.canvasHeight)
         .ticks(12,  d3.utcFormat("%Y/%m"))
+  }
+
+  /**
+   * Compute Zoom
+   */
+  computeZoom(): void {
+    const extent = [
+      [0, 0],
+      [this.canvasWidth, this.canvasHeight],
+    ];
+    this.zoom = d3.zoom()
+                .scaleExtent([1, 4])
+                .extent(extent as any)
+                .translateExtent(extent as any)
+                .on('zoom', event => this.zoomed(event));
+    this.svgSelection.call(this.zoom);
+  }
+
+
+  /**
+   * Zoom事件
+   */
+  zoomed(event): void {
+    this.yScale.range([this.canvasHeight, 0].map(d => event.transform.applyY(d)));
+    this.computeAxis();
+    this.render();
+
   }
 
   /**
@@ -122,8 +153,16 @@ export class TimeChartComponent implements OnInit {
    * Render Axis
    */
   renderAxis(): void {
-    this.xAxisLayer.attr('class', 'axis x-axis').transition().call(this.xAxis);
-    this.yAxisLayer.attr('class', 'axis y-axis').transition().call(this.yAxis);
+    this.xAxisLayer.attr('class', 'axis x-axis')
+        .transition()
+        .duration(50)
+        .call(this.xAxis)
+        .attr('transform', `translate(0, ${this.canvasHeight})`);
+
+    this.yAxisLayer.attr('class', 'axis y-axis')
+        .transition()
+        .duration(50)
+        .call(this.yAxis);
   }
 
   /**
@@ -141,6 +180,8 @@ export class TimeChartComponent implements OnInit {
     let enter = lines.enter().append<d3.BaseType>('path');
 
     enter.merge(lines)
+      .transition()
+      .duration(50)
       .attr('d', line)
       .attr('fill', 'none')
       .attr('stroke', 'black')
@@ -160,6 +201,7 @@ export class TimeChartComponent implements OnInit {
               )
             )
   }
+
   /**
    * 整體SVG去除Padding後的寬度
    * (實際繪圖區域大小)

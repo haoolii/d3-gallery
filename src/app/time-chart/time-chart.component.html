@@ -4,8 +4,12 @@
   >
     <g id="axisLayer">
       <g id="xAxisLayer"></g>
-      <g id="yAxisLayer"></g>
+      <g id="yAxisLayer" mask="url(#yAxisMaskLayer)"></g>
     </g>
-    <g id="linesLayer" ></g>
+    <g id="linesLayer" mask="url(#linesMaskLayer)"></g>
   </g>
+  <defs>
+    <mask id="linesMaskLayer"><rect [attr.width]="canvasWidth" [attr.height]="canvasHeight" fill="white"></rect></mask>
+    <mask id="yAxisMaskLayer"><rect [attr.width]="width" [attr.height]="canvasHeight" [attr.x]="-padding.left" fill="white"></rect></mask>
+  </defs>
 </svg>
