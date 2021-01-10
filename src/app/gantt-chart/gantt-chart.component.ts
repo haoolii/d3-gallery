@@ -218,12 +218,18 @@ export class GanttChartComponent implements OnInit {
     const ganttWidth = selection => selection.attr('width', node => this.xScale(node.data.end) - this.xScale(node.data.start));
     const transform = selection => selection.attr('transform', node => `translate(${this.xScale(node.data.start)}, ${this.yScale(node.data.key) + this.yScale.bandwidth() * 0.15})`);
 
-    /** Select And Update */
+    /** Select */
     const g =
       this.ganttLayer
         .selectAll('g')
         .data(this.seriesNodes, (node: SerieGanttNode) => node.data.key)
         .call(transform);
+
+      /** Update */
+      g
+        .call(transform)
+        .selectAll('rect')
+        .attr('fill', (node: SerieGanttNode) => this.color(node.data.key))
 
       /** ENTER */
       let enter = g
