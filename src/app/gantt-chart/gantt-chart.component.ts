@@ -80,6 +80,7 @@ export class GanttChartComponent implements OnInit {
   xExtent;
   xAxis;
   yAxis;
+  color;
 
   constructor() { }
 
@@ -90,6 +91,14 @@ export class GanttChartComponent implements OnInit {
   }
 
   go(): void {
+    /** 計算 */
+    this.compute();
+
+    /** 渲染畫面 */
+    this.render();
+  }
+
+  compute(): void {
     /** 計算最大值最小值 */
     this.computeExtent();
 
@@ -99,8 +108,8 @@ export class GanttChartComponent implements OnInit {
     /** 計算Axis */
     this.computeAxis();
 
-    /** 渲染畫面 */
-    this.render();
+    /** 計算顏色 */
+    this.computeColor();
   }
 
   /**
@@ -163,6 +172,16 @@ export class GanttChartComponent implements OnInit {
         .tickSize(-this.canvasHeight);
   }
 
+  /**
+   * 計算顏色
+   */
+  computeColor(): void {
+    /** _scale可算出key對應的[0, 1] */
+    let _scale = d3.scaleBand().domain(this.seriesNodes.map(n => n.data.key));
+    /** 顏色輸入[0, 1]之間可得出色碼 */
+    this.color = (key: string) => d3.interpolateSpectral(_scale(key))
+  }
+
 
   /**
    * Render渲染坐標軸與甘特圖
@@ -201,6 +220,7 @@ export class GanttChartComponent implements OnInit {
         .enter()
         .append('rect')
         .attr('class', (node) => node.data.name)
+        .attr('fill', node => this.color(node.data.key))
         .on('click', (mouseEvent, node) => this.click(mouseEvent, node))
         .call(toTargetX)
         .call(toTargetY)
