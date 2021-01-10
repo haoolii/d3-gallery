@@ -45,7 +45,7 @@ export class TimeChartComponent implements OnInit {
    * 退縮Axis比例尺的尺標字體，以免遮擋
    */
   @Input() padding = {
-    top: 15,
+    top: 25,
     right: 20,
     bottom: 20,
     left: 55
@@ -64,6 +64,8 @@ export class TimeChartComponent implements OnInit {
   tooltipLineX;
   tooltipLineY;
   tooltipCircle;
+
+  tooltipFlags: Serie[] = [];
 
   isCtrlKeydown = false;
 
@@ -89,14 +91,17 @@ export class TimeChartComponent implements OnInit {
     )
     .subscribe(isCtrl => {
       this.isCtrlKeydown = isCtrl;
-      if (this.isCtrlKeydown) { }
+      !this.isCtrlKeydown && this.removeToolTipFlags()
     });
 
     this.svgSelection
       .on('mousemove', event => this.renderToolTip(event))
-      .on('mouseout', event => this.removeToolTip(event))
       .on('click', event => {
-        if (this.isCtrlKeydown) { }
+        const data = this.getPointData(event);
+        if (this.isCtrlKeydown && data) {
+          this.tooltipFlags.push(data);
+          this.renderToolTipFlags();
+        }
       })
 
     this.tooltipLineY = this.tooltipLayer
@@ -144,7 +149,7 @@ export class TimeChartComponent implements OnInit {
    */
   computeScale(): void {
     this.xScale = d3.scaleTime().domain(this.xExtent).range([0, this.canvasWidth]).nice();
-    this.yScale = d3.scaleLinear().domain(this.yExtent).range([this.canvasHeight, 0]);
+    this.yScale = d3.scaleLinear().domain(this.yExtent).range([this.canvasHeight, 0]).nice();
   }
 
   /**
@@ -194,6 +199,7 @@ export class TimeChartComponent implements OnInit {
   render(): void {
     this.renderAxis();
     this.renderLine();
+    this.renderToolTipFlags();
   }
 
   /**
@@ -252,20 +258,11 @@ export class TimeChartComponent implements OnInit {
   }
 
   renderToolTip(event): void {
-    /** 原始x, y，沒有padding */
-    const [sx, sy] = d3.pointer(event);
-    /** 轉換成有padding的位置 */
-    const x = sx - this.padding.left;
-    const y = sy - this.padding.top;
+    const data = this.getPointData(event);
 
-    if (x > this.canvasWidth || y < 0) return;
-
-    /** 取得目前滑鼠位置的時間位置 */
-    const xTime = this.xScale.invert(x);
-
-    /** 使用等分線找出對應目前時間最近的右邊資料 */
-    const bisectDate = d3.bisector<Serie, any>(d => d.date).right;
-    const data = this.series[bisectDate(this.series, xTime)];
+    if (!data) {
+      return;
+    }
 
     /** 繪製ToolTip Line, 使用找到的data繪製 */
     this.tooltipLineX
@@ -291,9 +288,67 @@ export class TimeChartComponent implements OnInit {
 
   }
 
-  removeToolTip(event): void {
-    // this.tooltipLine && this.tooltipLine.attr('stroke', 'none');
+  removeToolTipFlags(): void {
+    this.tooltipFlags = [];
+    this.renderToolTipFlags();
   }
+
+  renderToolTipFlags(): void {
+    let g = this.tooltipFlagLayer
+              .selectAll('g')
+              .data(this.tooltipFlags);
+
+    let enter = g.enter().append<d3.BaseType>('g').classed('tooltip-flag', true)
+
+    enter.append('line')
+      .attr('x1', d => this.xScale(d.date))
+      .attr('x2', d => this.xScale(d.date))
+      .attr('y1', 0)
+      .attr('y2', this.canvasHeight)
+      .attr('fill', 'none')
+      .attr('stroke', '#fcc117')
+      .attr('stroke-width', 2)
+
+    enter.append('text')
+      .text(d => `$${d.price.toFixed(2)}`)
+      .attr('text-anchor', 'middle')
+      .attr('x', d => this.xScale(d.date))
+      .attr('font-size', '0.7em')
+      .attr('fill', '#fcc117')
+      .attr('font-weight', 'bold')
+      .attr('dy', '-0.35em')
+
+    enter.append('text')
+      .text(d => `${d3.timeFormat('%Y-%m-%d')(d.date)}`)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#fcc117')
+      .attr('font-weight', 'bold')
+      .attr('x', d => this.xScale(d.date))
+      .attr('font-size', '0.7em')
+      .attr('dy', '-1.4em')
+
+    g.exit().remove()
+
+  }
+
+  getPointData(event): Serie {
+    /** 原始x, y，沒有padding */
+    const [sx, sy] = d3.pointer(event);
+    /** 轉換成有padding的位置 */
+    const x = sx - this.padding.left;
+    const y = sy - this.padding.top;
+
+    if (x > this.canvasWidth || y < 0) return;
+
+    /** 取得目前滑鼠位置的時間位置 */
+    const xTime = this.xScale.invert(x);
+
+    /** 使用等分線找出對應目前時間最近的右邊資料 */
+    const bisectDate = d3.bisector<Serie, any>(d => d.date).right;
+
+    return this.series[bisectDate(this.series, xTime)];
+  }
+
   /**
    * 取得比特幣報價
    */
@@ -346,6 +401,9 @@ export class TimeChartComponent implements OnInit {
   }
   get tooltipLayer(): d3.Selection<any, unknown, null, undefined> {
     return this.svgSelection.select('#tooltipLayer');
+  }
+  get tooltipFlagLayer(): d3.Selection<any, unknown, null, undefined> {
+    return this.svgSelection.select('#tooltipFlagLayer');
   }
 
   /**
