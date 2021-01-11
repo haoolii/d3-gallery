@@ -1,23 +1,22 @@
 svg.gantt-chart {
   width: 100%;
-
-  .tip {
-    position: absolute;
-    z-index: 10000;
-    line-height: 1.5;
-    padding: 12px;
-    width: 250px;
-    background: rgba(255, 255, 255, 1);
-    color: black;
-    border-radius: 2px;
-    pointer-events: none;
-    box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.2);
-  }
-
   .gantt-group {
     text {
       font-size: 0.7em;
       fill: white;
     }
   }
+}
+
+.tip {
+  position: absolute;
+  z-index: 10000;
+  line-height: 1.5;
+  padding: 12px;
+  width: 250px;
+  background: rgba(255, 255, 255, 1);
+  color: black;
+  border-radius: 2px;
+  pointer-events: none;
+  box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.2);
 }
