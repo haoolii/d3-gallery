@@ -219,22 +219,23 @@ export class GanttChartComponent implements OnInit {
     const transform = selection => selection.attr('transform', node => `translate(${this.xScale(node.data.start)}, ${this.yScale(node.data.key) + this.yScale.bandwidth() * 0.15})`);
 
     /** Select */
-    const g =
+    const ganttGroup =
       this.ganttLayer
         .selectAll('g')
         .data(this.seriesNodes, (node: SerieGanttNode) => node.data.key)
         .call(transform);
 
       /** Update */
-      g
+      ganttGroup
         .call(transform)
         .selectAll('rect')
         .attr('fill', (node: SerieGanttNode) => this.color(node.data.key))
 
       /** ENTER */
-      let enter = g
+      let enter = ganttGroup
         .enter()
         .append('g')
+        .classed('gantt-group', true)
         .call(transform)
 
       enter.call(this.toolTip);
@@ -252,14 +253,12 @@ export class GanttChartComponent implements OnInit {
       enter
         .append('text')
         .text(node => node.data.name)
-        .attr('font-size', '0.7em')
-        .attr('fill', 'white')
         .attr('x', '5px')
         .attr('y', node => `${this.yScale.bandwidth() * 0.5}px`)
-        .attr('dy', node => `-.35em`)
+        .attr('dy', `-.35em`)
 
       /** EXIT */
-      g
+      ganttGroup
         .exit()
         .remove();
   }
