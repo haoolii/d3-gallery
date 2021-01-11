@@ -1,11 +1,40 @@
-svg {
+svg.time-chart {
   cursor: crosshair;
+
+  .y-axis .tick line {
+    opacity: 0.2;
+  }
+
+  .tooltip-line {
+    stroke: black;
+    opacity: 0.8;
+  }
+
+  .tooltip-circle {
+    fill: #fcc117;
+  }
+
+  .tooltip-flag {
+    text {
+      text-anchor: middle;
+      font-size: 0.7em;
+      fill: #fcc117;
+      font-weight: bold;
+    }
+    line {
+      fill: none;
+      stroke: #fcc117;
+      stroke-width: 2;
+    }
+  }
+
+  .price-line {
+    fill: none;
+    stroke: #fcc117;
+    stroke-width: 2;
+  }
+  .price-area {
+    fill: url(#areaColor);
+  }
 }
 
-.y-axis .tick line {
-  opacity: 0.2;
-}
-
-.tooltip-line {
-  opacity: 0.8;
-}

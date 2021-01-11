@@ -53,14 +53,13 @@ export class TimeChartComponent implements OnInit {
 
   series: Serie[] = [];
 
-  xScale: d3.ScaleTime<number, number, never>;
-  yScale;
+  xScale: d3.ScaleTime<number, number>;
+  yScale: d3.ScaleLinear<number, number>;
   xExtent: [Date, Date];
   yExtent: [number, number];
-  xAxis;
-  yAxis;
-  zoom;
-  zoomX;
+  xAxis: d3.Axis<Date>;
+  yAxis: d3.Axis<number>;
+  zoom: d3.ZoomBehavior<Element, unknown>;
   tooltipLineX;
   tooltipLineY;
   tooltipCircle;
@@ -116,9 +115,8 @@ export class TimeChartComponent implements OnInit {
 
     this.tooltipCircle = this.tooltipLayer
                   .append('circle')
-                  .attr('r', 4)
-                  .attr('fill', 'none')
-                  .classed('tooltip-circle', true);
+                  .classed('tooltip-circle', true)
+                  .attr('r', 4);
   }
 
   go(): void {
@@ -148,19 +146,19 @@ export class TimeChartComponent implements OnInit {
    * Compute Scale
    */
   computeScale(): void {
-    this.xScale = d3.scaleTime().domain(this.xExtent).range([0, this.canvasWidth]).nice();
-    this.yScale = d3.scaleLinear().domain(this.yExtent).range([this.canvasHeight, 0]).nice();
+    this.xScale = d3.scaleTime<number, number>().domain(this.xExtent).range([0, this.canvasWidth]).nice();
+    this.yScale = d3.scaleLinear<number, number>().domain(this.yExtent).range([this.canvasHeight, 0]).nice();
   }
 
   /**
    * Compute Axis
    */
   computeAxis(): void {
-    this.yAxis = d3.axisLeft(this.yScale)
+    this.yAxis = d3.axisLeft<number>(this.yScale)
         .tickSize(-this.canvasWidth);
 
     this.xAxis = d3
-        .axisBottom(this.xScale)
+        .axisBottom<Date>(this.xScale)
         .tickSizeOuter(-this.canvasHeight)
         .ticks(12,  d3.utcFormat("%Y/%m"))
   }
@@ -238,29 +236,25 @@ export class TimeChartComponent implements OnInit {
               .y0(d => this.yScale(-5500))
 
     let lines = this.linesLayer
-                  .selectAll('path.line')
+                  .selectAll('path.price-line')
                   .data<Serie[]>([this.series])
 
     let areas = this.linesLayer
-                  .selectAll('path.area')
+                  .selectAll('path.price-area')
                   .data<Serie[]>([this.series])
 
-    let enterLines = lines.enter().append<d3.BaseType>('path').classed('line', true);
-    let enterAreas = lines.enter().append<d3.BaseType>('path').classed('area', true)
+    let enterLines = lines.enter().append<d3.BaseType>('path').classed('price-line', true);
+    let enterAreas = lines.enter().append<d3.BaseType>('path').classed('price-area', true);
 
     enterAreas.merge(areas)
       .transition()
       .duration(50)
       .attr('d', area)
-      .attr('fill', 'url(#areaColor)')
 
     enterLines.merge(lines)
       .transition()
       .duration(50)
       .attr('d', line)
-      .attr('fill', 'none')
-      .attr('stroke', '#fcc117')
-      .attr('stroke-width', 2)
   }
 
   renderToolTip(event): void {
@@ -272,14 +266,12 @@ export class TimeChartComponent implements OnInit {
 
     /** 繪製ToolTip Line, 使用找到的data繪製 */
     this.tooltipLineX
-        .attr('stroke', 'black')
         .attr('x1', 0)
         .attr('x2', this.canvasWidth)
         .attr('y1', this.yScale(data.price))
         .attr('y2', this.yScale(data.price));
 
     this.tooltipLineY
-        .attr('stroke', 'black')
         .attr('x1', this.xScale(data.date))
         .attr('x2', this.xScale(data.date))
         .attr('y1', 0)
@@ -289,7 +281,6 @@ export class TimeChartComponent implements OnInit {
     this.tooltipCircle
         .attr('cx', this.xScale(data.date))
         .attr('cy', this.yScale(data.price))
-        .attr('fill', '#fcc117')
         .raise()
 
   }
@@ -311,39 +302,33 @@ export class TimeChartComponent implements OnInit {
       .attr('x2', d => this.xScale(d.date))
       .attr('y1', 0)
       .attr('y2', this.canvasHeight)
-      .attr('fill', 'none')
-      .attr('stroke', '#fcc117')
-      .attr('stroke-width', 2)
 
     enter.append('text')
       .text(d => `$${d.price.toFixed(2)}`)
-      .attr('text-anchor', 'middle')
-      .attr('x', d => this.xScale(d.date))
-      .attr('font-size', '0.7em')
-      .attr('fill', '#fcc117')
-      .attr('font-weight', 'bold')
       .attr('dy', '-0.35em')
+      .attr('x', d => this.xScale(d.date))
 
     enter.append('text')
       .text(d => `${d3.timeFormat('%Y-%m-%d')(d.date)}`)
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#fcc117')
-      .attr('font-weight', 'bold')
       .attr('x', d => this.xScale(d.date))
-      .attr('font-size', '0.7em')
       .attr('dy', '-1.4em')
 
     g.exit().remove()
 
   }
 
+  /**
+   * 取得目前點擊事件的位置對應的資料源
+   */
   getPointData(event): Serie {
     /** 原始x, y，沒有padding */
     const [sx, sy] = d3.pointer(event);
+
     /** 轉換成有padding的位置 */
     const x = sx - this.padding.left;
     const y = sy - this.padding.top;
 
+    /** 超出繪圖區域不計算，因為一定沒有值 */
     if (x > this.canvasWidth || y < 0) return;
 
     /** 取得目前滑鼠位置的時間位置 */
@@ -352,11 +337,12 @@ export class TimeChartComponent implements OnInit {
     /** 使用等分線找出對應目前時間最近的右邊資料 */
     const bisectDate = d3.bisector<Serie, any>(d => d.date).right;
 
+    /** 找出目前xTime時間最近的資料的Index並回傳 */
     return this.series[bisectDate(this.series, xTime)];
   }
 
   /**
-   * 取得比特幣報價
+   * 取得比特幣報價(2020/01/01 - 2020/12/31)
    */
   getData(): Observable<Serie[]> {
     return from(d3.csv('assets/btc.csv') as Promise<BTCraw[]>)
