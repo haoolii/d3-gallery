@@ -78,11 +78,11 @@ export class GanttChartComponent implements OnInit {
   seriesNodes: SerieGanttNode[];
   seriesNodeMap: { [key: string]: SerieGanttNode };
 
-  xScale: d3.ScaleTime<number, number, never>;
-  yScale;
-  xExtent;
-  xAxis;
-  yAxis;
+  xScale: d3.ScaleTime<number, number>;
+  yScale: d3.ScaleBand<string>;
+  xExtent: Array<Date>;
+  xAxis: d3.Axis<Date>;
+  yAxis: d3.Axis<string>;
   color;
   toolTip;
   timeFormate = d3.timeFormat('%Y-%m-%d %H:%M');
@@ -184,7 +184,7 @@ export class GanttChartComponent implements OnInit {
         .tickFormat((d: string) => this.seriesNodeMap[d].data.name);
 
     this.xAxis = d3
-        .axisTop(this.xScale)
+        .axisTop<Date>(this.xScale)
         .tickSizeOuter(0)
         .tickSize(-this.canvasHeight);
   }
