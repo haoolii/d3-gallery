@@ -100,7 +100,8 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/assets/btc.csv"
+              "src/assets/btc.csv",
+              "src/assets/music.mp3"
             ],
             "styles": [
               "./node_modules/ng-zorro-antd/ng-zorro-antd.min.css",

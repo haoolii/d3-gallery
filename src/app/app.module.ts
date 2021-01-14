@@ -14,6 +14,7 @@ import { GanttChartComponent } from './gantt-chart/gantt-chart.component';
 import { CodeEditorComponent } from './code-editor/code-editor.component';
 import { TreeChartComponent } from './tree-chart/tree-chart.component';
 import { TimeChartComponent } from './time-chart/time-chart.component';
+import { AudioChartComponent } from './audio-chart/audio-chart.component';
 registerLocaleData(zh);
 
 @NgModule({
@@ -22,7 +23,8 @@ registerLocaleData(zh);
     GanttChartComponent,
     CodeEditorComponent,
     TreeChartComponent,
-    TimeChartComponent
+    TimeChartComponent,
+    AudioChartComponent
   ],
   imports: [
     BrowserModule,

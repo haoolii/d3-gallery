@@ -1,0 +1,9 @@
+<button nz-button nzType="primary" nzShape="circle" (click)="playSound(0)"><i nz-icon nzType="caret-right" nzTheme="outline"></i></button>
+<svg #svgRef class="audio-chart" xmlns="http://www.w3.org/2000/svg" [attr.viewBox]="svgViewBox">
+  <g id="rootLayer"
+    [attr.transform]="rootTransform"
+  >
+    <g id="posLayer"></g>
+    <g id="audioLayer"></g>
+  </g>
+</svg>
