@@ -6,6 +6,8 @@ import { NzCodeEditorModule } from 'ng-zorro-antd/code-editor';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzLayoutModule } from 'ng-zorro-antd/layout';
+import { NzMenuModule } from 'ng-zorro-antd/menu';
 
 @NgModule({
   exports: [
@@ -15,7 +17,9 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
     NzCodeEditorModule,
     NzModalModule,
     NzButtonModule,
-    NzIconModule
+    NzIconModule,
+    NzLayoutModule,
+    NzMenuModule
   ]
 })
 export class NgZorroAntdModule { }
