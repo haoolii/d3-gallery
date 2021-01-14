@@ -244,7 +244,7 @@ export class TimeChartComponent implements OnInit {
                   .data<Serie[]>([this.series])
 
     let enterLines = lines.enter().append<d3.BaseType>('path').classed('price-line', true);
-    let enterAreas = lines.enter().append<d3.BaseType>('path').classed('price-area', true);
+    let enterAreas = areas.enter().append<d3.BaseType>('path').classed('price-area', true);
 
     enterAreas.merge(areas)
       .transition()
