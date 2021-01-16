@@ -107,8 +107,11 @@ constructor() { }
   computeNode(): void {
     this.hierarchyData = d3.hierarchy(this._series);
     this.treeData = this.tree(this.hierarchyData);
+    console.log('tree-chart: treeData', this.treeData);
     this.links = this.treeData.links();
+    console.log('tree-chart: links', this.links);
     this.nodes = this.treeData.descendants();
+    console.log('tree-charts: nodes', this.nodes);
   }
 
   // TODO: 還需要調整Render, 更新策略
