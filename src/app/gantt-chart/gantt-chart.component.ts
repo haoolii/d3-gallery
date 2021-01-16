@@ -144,8 +144,8 @@ export class GanttChartComponent implements OnInit {
     return _seriesNodes
               .filter(node => node.data.key !== this.rootKEY)
               .map(node => {
-                /** 使用uuidv4產生獨立key */
-                node.data.key = uuidv4();
+                /** 使用uuidv4產生獨立key 有Key就不用產生 */
+                node.data.key = node.data.key ? node.data.key : uuidv4();
 
                 /** 轉換時間字串至Date */
                 node.data.start = new Date(node.data.start);
@@ -193,10 +193,13 @@ export class GanttChartComponent implements OnInit {
    * 計算顏色
    */
   computeColor(): void {
-    /** _scale可算出key對應的[0, 1] */
-    let _scale = d3.scaleBand().domain(this.seriesNodes.map(n => n.data.key));
-    /** 顏色輸入[0, 1]之間可得出色碼 */
-    this.color = (key: string) => d3.interpolateSpectral(_scale(key))
+    /** 已經有產生Color就不需要重新產生 */
+    if (!this.color) {
+      /** _scale可算出key對應的[0, 1] */
+      let _scale = d3.scaleBand().domain(this.seriesNodes.map(n => n.data.key));
+      /** 顏色輸入[0, 1]之間可得出色碼 */
+      this.color = (key: string) => d3.interpolateSpectral(_scale(key));
+    }
   }
 
 
@@ -209,14 +212,17 @@ export class GanttChartComponent implements OnInit {
   }
 
   renderAxis(): void {
-    this.xAxisLayer.attr('class', 'axis x-axis').transition().call(this.xAxis);
-    this.yAxisLayer.attr('class', 'axis x-axis').transition().call(this.yAxis);
+    this.xAxisLayer.attr('class', 'axis x-axis').transition().duration(50).call(this.xAxis);
+    this.yAxisLayer.attr('class', 'axis x-axis').transition().duration(50).call(this.yAxis);
   }
 
   renderGantt(): void {
     const ganttHeight = selection => selection.attr('height', node => this.yScale.bandwidth() * 0.7);
     const ganttWidth = selection => selection.attr('width', node => this.xScale(node.data.end) - this.xScale(node.data.start));
     const transform = selection => selection.attr('transform', node => `translate(${this.xScale(node.data.start)}, ${this.yScale(node.data.key) + this.yScale.bandwidth() * 0.15})`);
+    /** 三角形 */
+    const symbol = d3.symbol();
+    symbol.type(d3.symbols[5]);
 
     /** Select */
     const ganttGroup =
@@ -230,6 +236,13 @@ export class GanttChartComponent implements OnInit {
         .call(transform)
         .selectAll('rect')
         .attr('fill', (node: SerieGanttNode) => this.color(node.data.key))
+
+      /** Symbol Update */
+      ganttGroup
+        .selectAll('.triangle')
+        .attr('transform', (d: SerieGanttNode) =>
+          `translate(${10}, ${this.yScale.bandwidth() * 0.35}) rotate(${d.data.data ? 180 : 90})`
+        )
 
       /** ENTER */
       let enter = ganttGroup
@@ -253,9 +266,17 @@ export class GanttChartComponent implements OnInit {
       enter
         .append('text')
         .text(node => node.data.name)
-        .attr('x', '5px')
-        .attr('y', node => `${this.yScale.bandwidth() * 0.5}px`)
+        .attr('x', d => d.children ? 20 : 10)
+        .attr('y', node => `${this.yScale.bandwidth() * 0.5}`)
         .attr('dy', `-.35em`)
+
+      /** 增加Symbol */
+      enter
+        .append('path')
+        .classed('triangle', true)
+        .attr('opacity', d => d.children ? 1 : 0)
+        .attr('d', symbol(this.yScale.bandwidth() * 0.7))
+        .attr('transform', d => `translate(${10}, ${this.yScale.bandwidth() * 0.35}) rotate(180)`)
 
       /** EXIT */
       ganttGroup
@@ -278,6 +299,8 @@ export class GanttChartComponent implements OnInit {
         node.data.data = node.data._data;
         node.data._data = null;
     }
+    this.toolTip.hide();
+
     /** 隱藏完子資料後，需要重新遍歷及產生節點 */
     this.seriesNodes = this.preProcess(this.serieSource);
 

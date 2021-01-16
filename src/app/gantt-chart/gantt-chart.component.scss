@@ -6,6 +6,9 @@ svg.gantt-chart {
       fill: white;
     }
   }
+  .triangle {
+    fill: white;
+  }
 }
 
 .tip {
@@ -20,3 +23,4 @@ svg.gantt-chart {
   pointer-events: none;
   box-shadow: 2px 2px 2px 1px rgba(0, 0, 0, 0.2);
 }
+
