@@ -140,6 +140,7 @@ export class GanttChartComponent implements OnInit {
     let _seriesNodes: SerieGanttNode[] = [];
 
     /** 使用d3.hierarchy，遍經樹狀結構。並使用前序(preOrder)尋訪節點 */
+    /** https://www.geeksforgeeks.org/tree-traversals-inorder-preorder-and-postorder/ */
     d3
       .hierarchy(series, serie => serie.data)
       .eachBefore(node => _seriesNodes = [..._seriesNodes, node]);
