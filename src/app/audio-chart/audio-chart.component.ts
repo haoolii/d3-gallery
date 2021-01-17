@@ -21,7 +21,7 @@ export class AudioChartComponent implements OnInit {
    * 高度(default: 600)
    * 整體SVG高度
    */
-  @Input() height = 600;
+  @Input() height = 200;
 
   waveHeight = 200;
 
@@ -57,7 +57,7 @@ export class AudioChartComponent implements OnInit {
     this.beatData = buffer;
     console.log(this.beatData);
     let waveData = buffer.getChannelData(0).filter((d, i) => i % 10);
-
+    console.log('waveData', waveData)
     let xScale = d3.scaleLinear().range([0, this.width]).domain([0, waveData.length]);
     let line = d3.line<any>()
                 .x((d, i) => xScale(i))
