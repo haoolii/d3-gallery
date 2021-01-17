@@ -85,6 +85,7 @@ export class GanttChartComponent implements OnInit {
   yAxis: d3.Axis<string>;
   color;
   toolTip;
+  triangleSymbol = d3.symbol().type(d3.symbols[5]);
   timeFormate = d3.timeFormat('%Y-%m-%d %H:%M');
 
   constructor(private zone: NgZone) {}
@@ -222,9 +223,6 @@ export class GanttChartComponent implements OnInit {
     const ganttHeight = selection => selection.attr('height', node => this.yScale.bandwidth() * 0.7);
     const ganttWidth = selection => selection.attr('width', node => this.xScale(node.data.end) - this.xScale(node.data.start));
     const transform = selection => selection.attr('transform', node => `translate(${this.xScale(node.data.start)}, ${this.yScale(node.data.key) + this.yScale.bandwidth() * 0.15})`);
-    /** 三角形 */
-    const symbol = d3.symbol();
-    symbol.type(d3.symbols[5]);
 
     /** Select */
     const ganttGroup =
@@ -242,6 +240,7 @@ export class GanttChartComponent implements OnInit {
       /** Symbol Update */
       ganttGroup
         .selectAll('.triangle')
+        .transition()
         .attr('transform', (d: SerieGanttNode) =>
           `translate(${10}, ${this.yScale.bandwidth() * 0.35}) rotate(${d.data.data ? 180 : 90})`
         )
@@ -277,7 +276,7 @@ export class GanttChartComponent implements OnInit {
         .append('path')
         .classed('triangle', true)
         .attr('opacity', d => d.children ? 1 : 0)
-        .attr('d', symbol(this.yScale.bandwidth() * 0.7))
+        .attr('d', this.triangleSymbol(this.yScale.bandwidth() * 0.7))
         .attr('transform', d => `translate(${10}, ${this.yScale.bandwidth() * 0.35}) rotate(180)`)
 
       /** EXIT */
