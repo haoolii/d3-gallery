@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, NgZone, OnInit, ViewChild } from '@angular/core';
 import * as d3 from 'd3';
 import { clone } from './clone';
 import { v4 as uuidv4 } from 'uuid';
@@ -87,7 +87,7 @@ export class GanttChartComponent implements OnInit {
   toolTip;
   timeFormate = d3.timeFormat('%Y-%m-%d %H:%M');
 
-  constructor() { }
+  constructor(private zone: NgZone) {}
 
   ngOnInit(): void {}
 
@@ -108,11 +108,13 @@ export class GanttChartComponent implements OnInit {
   }
 
   go(): void {
-    /** 計算 */
-    this.compute();
+    this.zone.runOutsideAngular(() => {
+      /** 計算 */
+      this.compute();
 
-    /** 渲染畫面 */
-    this.render();
+      /** 渲染畫面 */
+      this.render();
+    });
   }
 
   compute(): void {

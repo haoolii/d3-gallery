@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, ElementRef, Input, NgZone, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
 import { from, fromEvent, merge, Observable, Subject } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
@@ -68,8 +68,7 @@ export class TimeChartComponent implements OnInit {
 
   isCtrlKeydown = false;
 
-  constructor() {
-  }
+  constructor(private zone: NgZone) {}
 
   ngOnInit(): void {
     this.getData().subscribe(resp => {
@@ -120,8 +119,10 @@ export class TimeChartComponent implements OnInit {
   }
 
   go(): void {
-    this.compute();
-    this.render();
+    this.zone.runOutsideAngular(() => {
+      this.compute();
+      this.render();
+    });
   }
 
   /**
