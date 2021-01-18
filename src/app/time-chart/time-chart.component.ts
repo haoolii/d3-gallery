@@ -71,6 +71,7 @@ export class TimeChartComponent implements OnInit {
   constructor(private zone: NgZone) {}
 
   ngOnInit(): void {
+    /** 取得BTC報價 */
     this.getData().subscribe(resp => {
       this.series = resp;
       this.justGoFirst();
@@ -120,7 +121,9 @@ export class TimeChartComponent implements OnInit {
 
   go(): void {
     this.zone.runOutsideAngular(() => {
+      /** 計算 */
       this.compute();
+      /** 渲染 */
       this.render();
     });
   }
@@ -129,9 +132,16 @@ export class TimeChartComponent implements OnInit {
    * Compute 相關
    */
   compute(): void {
+    /** 計算最大值最小值 */
     this.computeExtent();
+
+    /** 計算Scale */
     this.computeScale();
+
+    /** 計算坐標軸 */
     this.computeAxis();
+
+    /** 計算縮放 */
     this.computeZoom();
   }
 
@@ -202,8 +212,13 @@ export class TimeChartComponent implements OnInit {
    * Render 相關
    */
   render(): void {
+    /** 渲染坐標軸 */
     this.renderAxis();
+
+    /** 渲染主要價格線 */
     this.renderLine();
+
+    /** 渲染輔助Tip跟Flags */
     this.renderToolTipFlags();
   }
 
@@ -224,34 +239,41 @@ export class TimeChartComponent implements OnInit {
   }
 
   /**
-   * Render Line
+   * Render Line 渲染價格線
    */
   renderLine(): void {
+    /** 產生線的繪製方法 */
     let line = d3.line<Serie>()
                 .x(d => this.xScale(d.date))
                 .y(d => this.yScale(d.price))
 
+    /** 產生Area的繪製方法 */
     let area = d3.area<Serie>()
               .x(d => this.xScale(d.date))
               .y1(d => this.yScale(d.price))
               .y0(d => this.yScale(-5500))
 
+    /** DataBinding Path */
     let lines = this.linesLayer
                   .selectAll('path.price-line')
                   .data<Serie[]>([this.series])
 
+    /** DataBinding Area */
     let areas = this.linesLayer
                   .selectAll('path.price-area')
                   .data<Serie[]>([this.series])
 
+    /** Lines, Areas Enter */
     let enterLines = lines.enter().append<d3.BaseType>('path').classed('price-line', true);
     let enterAreas = areas.enter().append<d3.BaseType>('path').classed('price-area', true);
 
+    /** Merge Enter & Update */
     enterAreas.merge(areas)
       .transition()
       .duration(50)
       .attr('d', area)
 
+    /** Merge Enter & Update */
     enterLines.merge(lines)
       .transition()
       .duration(50)
@@ -259,6 +281,7 @@ export class TimeChartComponent implements OnInit {
   }
 
   renderToolTip(event): void {
+    /** 取得點擊事件的PointData */
     const data = this.getPointData(event);
 
     if (!data) {
@@ -272,6 +295,7 @@ export class TimeChartComponent implements OnInit {
         .attr('y1', this.yScale(data.price))
         .attr('y2', this.yScale(data.price));
 
+    /** 繪製ToolTip Line, 使用找到的data繪製 */
     this.tooltipLineY
         .attr('x1', this.xScale(data.date))
         .attr('x2', this.xScale(data.date))
@@ -286,35 +310,42 @@ export class TimeChartComponent implements OnInit {
 
   }
 
+  /** 移除所有ToolTipFlags */
   removeToolTipFlags(): void {
     this.tooltipFlags = [];
     this.renderToolTipFlags();
   }
 
+  /** 渲染ToolTip Flags */
   renderToolTipFlags(): void {
-    let g = this.tooltipFlagLayer
+    /** Flag群組 */
+    let flagGroup = this.tooltipFlagLayer
               .selectAll('g')
               .data(this.tooltipFlags);
 
-    let enter = g.enter().append<d3.BaseType>('g').classed('tooltip-flag', true)
+    let enter = flagGroup.enter().append<d3.BaseType>('g').classed('tooltip-flag', true)
 
+    /** 畫上垂直的線 */
     enter.append('line')
       .attr('x1', d => this.xScale(d.date))
       .attr('x2', d => this.xScale(d.date))
       .attr('y1', 0)
       .attr('y2', this.canvasHeight)
 
+    /** 畫上目前的Flag價格 */
     enter.append('text')
       .text(d => `$${d.price.toFixed(2)}`)
       .attr('dy', '-0.35em')
       .attr('x', d => this.xScale(d.date))
 
+    /** 畫上目前的Flag時間 */
     enter.append('text')
       .text(d => `${d3.timeFormat('%Y-%m-%d')(d.date)}`)
       .attr('x', d => this.xScale(d.date))
       .attr('dy', '-1.4em')
 
-    g.exit().remove()
+    /** 離開時刪除 */
+    flagGroup.exit().remove()
 
   }
 
@@ -348,6 +379,7 @@ export class TimeChartComponent implements OnInit {
   getData(): Observable<Serie[]> {
     return from(d3.csv('assets/btc.csv') as Promise<BTCraw[]>)
               .pipe(
+                /** 只需Mapping出當日收盤價 */
                 map(resp => resp.map(raw =>
                   ({ date: new Date(raw.Date), price: +raw['Closing Price (USD)']})
                 )
