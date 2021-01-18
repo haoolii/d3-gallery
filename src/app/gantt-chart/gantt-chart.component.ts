@@ -1,9 +1,8 @@
-import { Component, ElementRef, Input, NgZone, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, NgZone, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
 import { clone } from './clone';
 import { v4 as uuidv4 } from 'uuid';
 import d3Tip from 'd3-tip';
-import { ViewEncapsulation } from '@angular/core';
 
 export interface SerieGantt {
   name: string;
