@@ -200,7 +200,7 @@ export class GanttChartComponent implements OnInit {
     if (!this.color) {
       /** _scale可算出key對應的[0, 1] */
       let _scale = d3.scaleBand().domain(this.seriesNodes.map(n => n.data.key));
-      /** 顏色輸入[0, 1]之間可得出色碼 */
+      /** 顏色輸入[0, 1]之間可得出色碼 https://github.com/d3/d3-scale-chromatic */
       this.color = (key: string) => d3.interpolateSpectral(_scale(key));
     }
   }
