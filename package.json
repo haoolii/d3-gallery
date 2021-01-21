@@ -5,7 +5,8 @@
     "postinstall": "ngcc",
     "ng": "ng",
     "start": "ng serve --hmr",
-    "build": "ng build",
+    "build": "ng build --prod",
+    "build-haolii": "ng build --prod ---deploy-url=/d3-gallery/ --base-href=/d3-gallery/",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
