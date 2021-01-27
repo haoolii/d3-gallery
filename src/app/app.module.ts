@@ -1,3 +1,5 @@
+import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { GanttPocComponent } from './pages/gantt-poc/gantt-poc.component';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { NgZorroAntdModule } from './ng-zorro-antd.module';
@@ -11,11 +13,14 @@ import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ComponentModule } from './components/component.module';
+import { RouterModule } from '@angular/router';
 registerLocaleData(zh);
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    DashboardComponent,
+    GanttPocComponent
   ],
   imports: [
     BrowserModule,
@@ -23,7 +28,17 @@ registerLocaleData(zh);
     HttpClientModule,
     BrowserAnimationsModule,
     NgZorroAntdModule,
-    ComponentModule
+    ComponentModule,
+    RouterModule.forRoot([
+      {
+        path: '',
+        component: DashboardComponent
+      },
+      {
+        path: 'gantt-poc',
+        component: GanttPocComponent
+      }
+    ])
   ],
   providers: [{ provide: NZ_I18N, useValue: zh_TW }],
   bootstrap: [AppComponent]

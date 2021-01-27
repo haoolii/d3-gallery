@@ -26,41 +26,9 @@
     </div>
   </nz-header>
   <nz-content>
-    <div nz-row nzJustify="center">
-      <div nz-row [nzGutter]="[16, 16]" style="width:100%; max-width: 1080px;">
-        <div nz-col [nzSpan]="24">
-          <nz-card nzTitle="Gantt Chart" nzHoverable="true" [nzExtra]="showCodeBtnTpl">
-            <app-gantt-chart
-              [series]="ganttSeries"
-            ></app-gantt-chart>
-          </nz-card>
-        </div>
-        <div nz-col [nzSpan]="24">
-          <nz-card nzTitle="Time Chart" nzHoverable="true">
-            <app-time-chart></app-time-chart>
-          </nz-card>
-        </div>
-        <div nz-col [nzSpan]="24">
-          <nz-card nzTitle="Tree Chart" nzHoverable="true">
-            <app-tree-chart
-              [series]="treeSeries"
-            ></app-tree-chart>
-          </nz-card>
-        </div>
-        <div nz-col [nzSpan]="24">
-          <nz-card nzTitle="Audio Chart" nzHoverable="true">
-            <app-audio-chart>
-            </app-audio-chart>
-          </nz-card>
-        </div>
-      </div>
+    <div style="padding: 0 50px;">
+      <router-outlet></router-outlet>
     </div>
   </nz-content>
-  <nz-footer>Footer</nz-footer>
 </nz-layout>
 
-<ng-template #showCodeBtnTpl>
-  <button nz-button nzType="primary" (click)="popCodeEditor(ganttSeries)">
-    <i nz-icon nzType="code" nzTheme="outline"></i>
-  </button>
-</ng-template>
