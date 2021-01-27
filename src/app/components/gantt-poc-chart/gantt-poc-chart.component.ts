@@ -4,6 +4,7 @@ import { clone } from './clone';
 import { v4 as uuidv4 } from 'uuid';
 import d3Tip from 'd3-tip';
 import { Driver } from './interfaces/driver';
+import { Trip } from './interfaces/trip';
 
 @Component({
   selector: 'app-gantt-poc-chart',
@@ -15,15 +16,23 @@ export class GanttPocChartComponent implements OnInit {
 
   private rootKEY = uuidv4();
 
-  driverSource = {};
+  driverSource: Driver[] = [];
+  driverSourceMap: { [key: string]: Driver} = {};
 
   /**
    * 資料源
    */
   @Input()
   set drivers(drivers: Driver[]) {
-    this.driverSource = clone(drivers);
+    this.driverSource = this.preProcess(clone(drivers));
+    this.driverSourceMap = this.driverSource.reduce((acc, curr) => ({ ...acc, [curr.key]: curr}), {});
   }
+
+  /** 日期 */
+  @Input() currentDate = new Date();
+
+  /** 每一列的高度 */
+  @Input() batchHeight = 60;
 
   /**
    * 寬度(default: 800)
@@ -57,7 +66,6 @@ export class GanttPocChartComponent implements OnInit {
   yAxis: d3.Axis<string>;
   color;
   toolTip;
-  triangleSymbol = d3.symbol().type(d3.symbols[5]);
   timeFormate = d3.timeFormat('%Y-%m-%d %H:%M');
 
   constructor(private zone: NgZone) {}
@@ -90,6 +98,18 @@ export class GanttPocChartComponent implements OnInit {
     });
   }
 
+  /** 預處理資料 */
+  preProcess(drivers: Driver[]): Driver[] {
+    return drivers.map(driver => {
+      const uuid = uuidv4();
+      return {
+        ...driver,
+        key: uuid,
+        trips: this.preProcessTrips(driver.trips, uuid),
+      }
+    })
+  }
+
   compute(): void {
     /** 計算最大值最小值 */
     this.computeExtent();
@@ -108,19 +128,37 @@ export class GanttPocChartComponent implements OnInit {
    * 計算Extent，算出X的最大時間與最小時間。
    */
   computeExtent(): void {
+    this.xExtent = [
+      new Date(new Date(this.currentDate).setHours(0, 0, 0, 0)),
+      new Date(new Date(this.currentDate).setHours(24, 0, 0, 0))
+    ];
   }
 
   /**
    * 計算Scale，算出X軸與Y軸資料對應畫面的比例
    */
   computeScale(): void {
-
+    this.xScale = d3.scaleTime().domain(this.xExtent).range([0, this.canvasWidth]);
+    this.yScale = d3
+        .scaleBand()
+        .domain(this.driverSource.map(node => node.key))
+        .range([0, this.canvasHeight])
+        .paddingInner(0.2)
   }
 
   /**
    * 產生XY坐標軸
    */
   computeAxis(): void {
+    this.yAxis = d3.axisLeft(this.yScale)
+        .tickSize(-this.canvasWidth)
+        .tickFormat((d: string) => this.driverSourceMap[d].driver);
+
+    this.xAxis = d3
+        .axisTop<Date>(this.xScale)
+        .tickSizeOuter(0)
+        .tickSize(-this.canvasHeight)
+        .ticks(24,  d3.utcFormat("%H:%S"))
   }
 
   /**
@@ -135,16 +173,68 @@ export class GanttPocChartComponent implements OnInit {
    */
   render(): void {
     this.renderAxis();
-    this.renderGantt();
+    this.renderTrips();
   }
 
   renderAxis(): void {
+    this.xAxisLayer.attr('class', 'axis x-axis').transition().duration(50).call(this.xAxis);
+    this.yAxisLayer.attr('class', 'axis x-axis').transition().duration(50).call(this.yAxis);
   }
 
-  renderGantt(): void {
+  /** 簡單做 */
+  renderTrips(): void {
+    const trips = this.tripsLayer
+      .selectAll('g.trip-items')
+      .data(this.driverSource);
+
+    /** UPDATE */
+    trips
+
+    /** ENTER */
+    trips.enter()
+      .append('g')
+      .classed('trip-items', true)
+      .selectAll('g')
+      .data(d => d.trips)
+      .call(selection =>　this.bindingTrip(selection as any))
+
+    /** EXIT */
+    trips
+      .exit()
+      .remove()
+  }
+
+  bindingTrip(selection: d3.Selection<any, Trip, null, undefined>) {
+    const tripLayer = selection
+                        .enter()
+                        .append('g')
+                        .attr('transform', d => `translate(${this.xScale(d.start as Date)}, ${this.yScale(d.parent)})`)
+    tripLayer
+      .append('rect')
+      .attr('y', this.yScale.bandwidth() * 0.1)
+      .attr('height', this.yScale.bandwidth() * 0.8)
+      .attr('width', d => this.xScale(d.end as Date) - this.xScale(d.start as Date))
+      .attr('fill', 'red')
+
+    tripLayer
+      .append('text')
+      .text(d => d.name)
+      .attr('x', 10)
+      .attr('y', d => `${this.yScale.bandwidth() * 0.7}`)
+      .attr('dy', `-.35em`)
+      .style("font-size", "10px")
 
   }
 
+  /** 轉換全部Trip的Date*/
+  preProcessTrips(trips: Trip[], driverKey: string): Trip[] {
+    return trips.map(trip => ({
+      ...trip,
+      start: new Date(trip.start),
+      end: new Date(trip.end),
+      parent: driverKey
+    }))
+  }
   /**
    * 整體SVG去除Padding後的寬度
    * (實際繪圖區域大小)
@@ -185,6 +275,9 @@ export class GanttPocChartComponent implements OnInit {
   get ganttLayer(): d3.Selection<any, unknown, null, undefined> {
     return this.svgSelection.select('#ganttLayer');
   }
+  get tripsLayer():  d3.Selection<any, unknown, null, undefined> {
+    return this.svgSelection.select('#tripsLayer');
+  }
 
   /**
    * 位移RootLayer
@@ -198,30 +291,12 @@ export class GanttPocChartComponent implements OnInit {
   }
 
   get viewBoxHeight() {
-      return this.height;
+      return this.driverSource.length * this.batchHeight;
   }
 
   get svgViewBox(): string {
     return `0 0 ${this.viewBoxWidth} ${this.viewBoxHeight}`;
   }
-
-  data = [
-    {
-      driver: "Driver1",
-      trips: [
-        {
-          name: '台北轉運點 -> 桃園機場',
-          start: '2020/01/27 10:00:00',
-          end: '2020/01/27 12:00:00'
-        },
-        {
-          name: '桃園機場 -> 台中轉運點',
-          start: '2020/01/27 14:00:00',
-          end: '2020/01/27 20:00:00'
-        }
-      ]
-    }
-  ]
 
   trips = [
     {

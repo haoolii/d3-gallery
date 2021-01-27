@@ -3,4 +3,5 @@ export interface Trip {
   name?: string;
   start?: Date | string;
   end?: Date | string;
+  parent?: string;
 }
