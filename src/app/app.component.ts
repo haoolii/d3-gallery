@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { NzModalService } from 'ng-zorro-antd/modal';
-import { CodeEditorComponent } from './code-editor/code-editor.component';
+import { CodeEditorComponent } from './components/code-editor/code-editor.component';
 
 @Component({
   selector: 'app-root',

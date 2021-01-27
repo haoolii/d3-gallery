@@ -10,28 +10,20 @@ import zh from '@angular/common/locales/zh';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { GanttChartComponent } from './gantt-chart/gantt-chart.component';
-import { CodeEditorComponent } from './code-editor/code-editor.component';
-import { TreeChartComponent } from './tree-chart/tree-chart.component';
-import { TimeChartComponent } from './time-chart/time-chart.component';
-import { AudioChartComponent } from './audio-chart/audio-chart.component';
+import { ComponentModule } from './components/component.module';
 registerLocaleData(zh);
 
 @NgModule({
   declarations: [
-    AppComponent,
-    GanttChartComponent,
-    CodeEditorComponent,
-    TreeChartComponent,
-    TimeChartComponent,
-    AudioChartComponent
+    AppComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
     HttpClientModule,
     BrowserAnimationsModule,
-    NgZorroAntdModule
+    NgZorroAntdModule,
+    ComponentModule
   ],
   providers: [{ provide: NZ_I18N, useValue: zh_TW }],
   bootstrap: [AppComponent]
