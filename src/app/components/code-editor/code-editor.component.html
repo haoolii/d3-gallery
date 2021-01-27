@@ -1,1 +1,7 @@
-<nz-code-editor class="editor" [ngModel]="inputCode " [nzEditorOption]="{ formatOnType: true }" [nzEditorOption]="{ language: 'json' }"></nz-code-editor>
+<nz-code-editor
+  class="editor"
+  [ngModel]="inputCode | json"
+  [nzEditorOption]="option"
+  [nzEditorOption]="{ language: 'json' }">
+</nz-code-editor>
+

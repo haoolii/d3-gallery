@@ -2,14 +2,16 @@
   <div nz-col [nzSpan]="8">
     <nz-card nzTitle="資料源">
       <div style="height: 60vh;">
-        <app-code-editor [inputCode]="'123'"></app-code-editor>
+        <app-code-editor [(inputCode)]="drivers"></app-code-editor>
       </div>
     </nz-card>
   </div>
   <div nz-col [nzSpan]="16">
     <nz-card nzTitle="主要圖表">
       <div style="height: 60vh;">
-        <app-gantt-poc-chart></app-gantt-poc-chart>
+        <app-gantt-poc-chart
+          [drivers]="drivers"
+        ></app-gantt-poc-chart>
       </div>
     </nz-card>
   </div>

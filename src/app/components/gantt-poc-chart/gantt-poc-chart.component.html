@@ -1,1 +1,11 @@
-<p>gantt-poc-chart works!</p>
+<svg #svgRef class="gantt-chart" xmlns="http://www.w3.org/2000/svg" [attr.viewBox]="svgViewBox">
+  <g id="rootLayer"
+    [attr.transform]="rootTransform"
+  >
+    <g id="axisLayer">
+      <g id="xAxisLayer"></g>
+      <g id="yAxisLayer"></g>
+    </g>
+    <g id="ganttLayer"></g>
+  </g>
+</svg>
