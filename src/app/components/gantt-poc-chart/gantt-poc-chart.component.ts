@@ -1,10 +1,12 @@
-import { Component, ElementRef, Input, NgZone, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { takeUntil } from 'rxjs/operators';
+import { Component, ElementRef, EventEmitter, Input, NgZone, OnInit, Output, ViewChild, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
 import { clone } from './clone';
 import { v4 as uuidv4 } from 'uuid';
 import d3Tip from 'd3-tip';
 import { Driver } from './interfaces/driver';
 import { Trip } from './interfaces/trip';
+import { D3BrushEvent } from 'd3';
 
 @Component({
   selector: 'app-gantt-poc-chart',
@@ -26,6 +28,9 @@ export class GanttPocChartComponent implements OnInit {
   set drivers(drivers: Driver[]) {
     this.driverSource = this.preProcess(clone(drivers));
     this.driverSourceMap = this.driverSource.reduce((acc, curr) => ({ ...acc, [curr.key]: curr}), {});
+    Promise.resolve().then(() => {
+      this.go();
+    })
   }
 
   /** 日期 */
@@ -33,6 +38,9 @@ export class GanttPocChartComponent implements OnInit {
 
   /** 每一列的高度 */
   @Input() batchHeight = 60;
+
+  /** 建立Trip事件 */
+  @Output() create = new EventEmitter();
 
   /**
    * 寬度(default: 800)
@@ -67,14 +75,15 @@ export class GanttPocChartComponent implements OnInit {
   color;
   toolTip;
   timeFormate = d3.timeFormat('%Y-%m-%d %H:%M');
+  brush: d3.BrushBehavior<any>;
 
   constructor(private zone: NgZone) {}
 
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    this.justGoFirst();
-    this.go();
+    // this.justGoFirst();
+    // this.go();
   }
 
   justGoFirst(): void {
@@ -89,13 +98,11 @@ export class GanttPocChartComponent implements OnInit {
   }
 
   go(): void {
-    this.zone.runOutsideAngular(() => {
-      /** 計算 */
-      this.compute();
+    /** 計算 */
+    this.compute();
 
-      /** 渲染畫面 */
-      this.render();
-    });
+    /** 渲染畫面 */
+    this.render();
   }
 
   /** 預處理資料 */
@@ -122,7 +129,11 @@ export class GanttPocChartComponent implements OnInit {
 
     /** 計算顏色 */
     this.computeColor();
+
+    /** 計算Brush */
+    this.computeBrush();
   }
+
 
   /**
    * 計算Extent，算出X的最大時間與最小時間。
@@ -167,6 +178,11 @@ export class GanttPocChartComponent implements OnInit {
   computeColor(): void {
   }
 
+  /**
+   * 計算Brush
+   */
+  computeBrush(): void {
+  }
 
   /**
    * Render渲染坐標軸與甘特圖
@@ -181,6 +197,7 @@ export class GanttPocChartComponent implements OnInit {
     this.yAxisLayer.attr('class', 'axis x-axis').transition().duration(50).call(this.yAxis);
   }
 
+  // TODO 一坨屎，需要優化
   /** 簡單做 */
   renderTrips(): void {
     const trips = this.tripsLayer
@@ -189,8 +206,14 @@ export class GanttPocChartComponent implements OnInit {
 
     /** UPDATE */
     trips
+      .selectAll('g')
+      .data(d => d.trips)
+      .call(selection =>　this.bindingTrip(selection as any))
 
     /** ENTER */
+    trips.enter()
+      .call(selection => this.bindingBrush(selection as any))
+
     trips.enter()
       .append('g')
       .classed('trip-items', true)
@@ -204,28 +227,64 @@ export class GanttPocChartComponent implements OnInit {
       .remove()
   }
 
+  getRangeDate(event: D3BrushEvent<any>): Date[] {
+    if (event.selection?.length) {
+      return [
+        this.xScale.invert((event.selection[0] as number)),
+        this.xScale.invert((event.selection[1] as number))
+      ]
+    }
+  }
+
+
   bindingTrip(selection: d3.Selection<any, Trip, null, undefined>) {
-    const tripLayer = selection
+    const tripEnterLayer = selection
                         .enter()
                         .append('g')
                         .attr('transform', d => `translate(${this.xScale(d.start as Date)}, ${this.yScale(d.parent)})`)
-    tripLayer
+    tripEnterLayer
       .append('rect')
       .attr('y', this.yScale.bandwidth() * 0.1)
       .attr('height', this.yScale.bandwidth() * 0.8)
       .attr('width', d => this.xScale(d.end as Date) - this.xScale(d.start as Date))
       .attr('fill', 'red')
 
-    tripLayer
+    tripEnterLayer
       .append('text')
       .text(d => d.name)
       .attr('x', 10)
       .attr('y', d => `${this.yScale.bandwidth() * 0.7}`)
       .attr('dy', `-.35em`)
       .style("font-size", "10px")
-
   }
 
+  bindingBrush(selection: d3.Selection<any, Driver, null, undefined>) {
+    const brushFn = selection =>
+      d3.brushX()
+        .extent(d => [[0, 0], [this.canvasWidth, this.yScale.bandwidth()]])
+        .on("end", (event: D3BrushEvent<any>, d: Driver) => {
+
+          // https://github.com/d3/d3-brush/issues/10
+          if (!event.sourceEvent || !selection) return;
+
+          this.create.emit({
+            target: d,
+            duration:  this.getRangeDate(event),
+            done: () => selection.call(event.target.clear)
+          })
+
+        })
+        (selection)
+
+    // 偷懶
+    selection.selectAll('.brush').remove()
+    selection
+      .append('g')
+      .attr('transform', d => `translate(0, ${this.yScale(d.key)})`)
+      .classed('brush', true)
+      .call(brushFn);
+    return selection;
+  }
   /** 轉換全部Trip的Date*/
   preProcessTrips(trips: Trip[], driverKey: string): Trip[] {
     return trips.map(trip => ({

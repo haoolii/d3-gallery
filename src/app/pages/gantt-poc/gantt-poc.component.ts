@@ -12,7 +12,11 @@ export class GanttPocComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  currentDate = new Date();
+  create(event): void {
+    console.log('GanttPocComponent', event)
+  }
+
+  currentDate = new Date('2021/01/28 17:00:00');
 
   drivers = [
     {
@@ -20,13 +24,13 @@ export class GanttPocComponent implements OnInit {
       trips: [
         {
           name: '台北轉運點 -> 桃園機場',
-          start: '2021/01/27 10:00:00',
-          end: '2021/01/27 12:00:00'
+          start: '2021/01/28 10:00:00',
+          end: '2021/01/28 12:00:00'
         },
         {
           name: '桃園機場 -> 台中轉運點',
-          start: '2021/01/27 14:00:00',
-          end: '2021/01/27 20:00:00'
+          start: '2021/01/28 14:00:00',
+          end: '2021/01/28 20:00:00'
         }
       ]
     },
@@ -35,13 +39,13 @@ export class GanttPocComponent implements OnInit {
       trips: [
         {
           name: '台中港 -> 高雄庫房',
-          start: '2021/01/27 05:00:00',
-          end: '2021/01/27 08:00:00'
+          start: '2021/01/28 05:00:00',
+          end: '2021/01/28 08:00:00'
         },
         {
           name: '高雄轉運點 -> 台北集運點',
-          start: '2021/01/27 10:00:00',
-          end: '2021/01/27 17:00:00'
+          start: '2021/01/28 10:00:00',
+          end: '2021/01/28 17:00:00'
         }
       ]
     },
@@ -50,13 +54,13 @@ export class GanttPocComponent implements OnInit {
       trips: [
         {
           name: '台中港 -> 高雄庫房',
-          start: '2021/01/27 05:00:00',
-          end: '2021/01/27 08:00:00'
+          start: '2021/01/28 05:00:00',
+          end: '2021/01/28 08:00:00'
         },
         {
           name: '高雄轉運點 -> 台北集運點',
-          start: '2021/01/27 10:00:00',
-          end: '2021/01/27 17:00:00'
+          start: '2021/01/28 10:00:00',
+          end: '2021/01/28 17:00:00'
         }
       ]
     },
@@ -65,13 +69,13 @@ export class GanttPocComponent implements OnInit {
       trips: [
         {
           name: '台中港 -> 高雄庫房',
-          start: '2021/01/27 05:00:00',
-          end: '2021/01/27 08:00:00'
+          start: '2021/01/28 05:00:00',
+          end: '2021/01/28 08:00:00'
         },
         {
           name: '高雄轉運點 -> 台北集運點',
-          start: '2021/01/27 10:00:00',
-          end: '2021/01/27 17:00:00'
+          start: '2021/01/28 10:00:00',
+          end: '2021/01/28 17:00:00'
         }
       ]
     }
