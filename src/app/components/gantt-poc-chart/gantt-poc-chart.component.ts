@@ -259,19 +259,42 @@ export class GanttPocChartComponent implements OnInit {
   }
 
   bindingBrush(selection: d3.Selection<any, Driver, null, undefined>) {
+    const thus = this;
     const brushFn = selection =>
       d3.brushX()
         .extent(d => [[0, 0], [this.canvasWidth, this.yScale.bandwidth()]])
-        .on("end", (event: D3BrushEvent<any>, d: Driver) => {
+        .on("end", function(event: D3BrushEvent<any>, d: Driver)  {
+          const selection2 = event.selection;
 
-          // https://github.com/d3/d3-brush/issues/10
-          if (!event.sourceEvent || !selection) return;
+          if (!event.mode || !selection2) return;
 
-          this.create.emit({
-            target: d,
-            duration:  this.getRangeDate(event),
-            done: () => selection.call(event.target.clear)
-          })
+          const [x0, x1] = (selection2 as any).map(d => d3.timeMinute.every(30).round(thus.xScale.invert(d)));
+
+          d3.select(this)
+            .transition()
+            .duration(100)
+            .call(event.target.move, x1 > x0 ? [x0, x1].map(thus.xScale) : null)
+
+            setTimeout(() => {
+              thus.create.emit({
+                target: d,
+                duration:  [x0, x1],
+                done: () => d3.select(this).call(event.target.clear)
+              })
+            }, 200);
+
+
+          // // https://github.com/d3/d3-brush/issues/10
+          // if (!event.sourceEvent || !_selection || !selection) return;
+
+          // console.log(d3.select(this));
+
+          // const [x0, x1] = (_selection as any).map(d => d3.timeHour.every(12).round(thus.xScale.invert(d)));
+          // console.log(`x0 ${x0} x1 ${x1}`)
+          // console.log(event);
+          // d3.select(this).transition().call(event.target.move, x1 > x0 ? [x0, x1].map(thus.xScale) : null);
+
+
 
         })
         (selection)

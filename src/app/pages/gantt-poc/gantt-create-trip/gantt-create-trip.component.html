@@ -1,0 +1,15 @@
+<form nz-form [formGroup]="form" class="login-form" (ngSubmit)="create()">
+  <nz-form-item>
+    <nz-form-control>
+      <nz-input-group >
+        <input type="text" nz-input formControlName="trip" placeholder="行程" />
+      </nz-input-group>
+    </nz-form-control>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-time-picker formControlName="start" nzFormat="HH:mm" nzPlaceHolder="請選擇開始時間" style="width: 100%;"></nz-time-picker>
+  </nz-form-item>
+  <nz-form-item>
+    <nz-time-picker formControlName="end" nzFormat="HH:mm" nzPlaceHolder="請選擇結束時間" style="width: 100%;"></nz-time-picker>
+  </nz-form-item>
+</form>

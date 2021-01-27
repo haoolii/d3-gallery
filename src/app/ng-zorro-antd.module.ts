@@ -8,6 +8,9 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
 
 @NgModule({
   exports: [
@@ -19,7 +22,10 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
     NzButtonModule,
     NzIconModule,
     NzLayoutModule,
-    NzMenuModule
+    NzMenuModule,
+    NzFormModule,
+    NzInputModule,
+    NzTimePickerModule
   ]
 })
 export class NgZorroAntdModule { }

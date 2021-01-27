@@ -1,4 +1,8 @@
+import { Driver } from './../../components/gantt-poc-chart/interfaces/driver';
+import { Trip } from './../../components/gantt-poc-chart/interfaces/trip';
 import { Component, OnInit } from '@angular/core';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { GanttCreateTripComponent } from './gantt-create-trip/gantt-create-trip.component';
 
 @Component({
   selector: 'app-gantt-poc',
@@ -7,18 +11,53 @@ import { Component, OnInit } from '@angular/core';
 })
 export class GanttPocComponent implements OnInit {
 
-  constructor() { }
+  constructor(private modal: NzModalService) { }
 
   ngOnInit(): void {
   }
 
   create(event): void {
-    console.log('GanttPocComponent', event)
+    console.log(event);
+    const modelRef = this.modal.create({
+      nzTitle: `新建行程 - ${event?.target?.driver}`,
+      nzContent: GanttCreateTripComponent,
+      nzWidth: 400,
+      nzBodyStyle: { height: '200px'},
+      nzMaskClosable: true,
+      nzClosable: true,
+      nzComponentParams: {},
+      nzFooter: [
+        {
+          label: '關閉',
+          onClick: () => modelRef.destroy()
+        },
+        {
+          label: '新建',
+          type: 'primary',
+          onClick: componentInstance => {
+            // TODO 醜到爆
+            let target = this.drivers.find(d => event.target.driver === d.driver)
+            if (target) {
+              const { trip, start, end } = componentInstance.form.value;
+              target.trips.push({
+                name: trip,
+                start: event.duration[0],
+                end: event.duration[1]
+              })
+            }
+            this.drivers = this.drivers.slice();
+            modelRef.destroy();
+
+          }
+        }
+      ]
+    });
+    modelRef.afterClose.subscribe(_ => event.done())
   }
 
   currentDate = new Date('2021/01/28 17:00:00');
 
-  drivers = [
+  drivers2: Driver[] = [
     {
       driver: "Driver1",
       trips: [
@@ -78,6 +117,20 @@ export class GanttPocComponent implements OnInit {
           end: '2021/01/28 17:00:00'
         }
       ]
+    }
+  ]
+  drivers =[
+    {
+      driver: "Driver1",
+      trips: []
+    },
+    {
+      driver: "Driver2",
+      trips: []
+    },
+    {
+      driver: "Driver3",
+      trips: []
     }
   ]
 }
