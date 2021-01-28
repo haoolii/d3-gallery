@@ -6,13 +6,14 @@
       </div>
     </nz-card>
   </div>
-  <div nz-col [nzSpan]="16">
+  <div nz-col [nzSpan]="24">
     <nz-card nzTitle="主要圖表">
       <div style="height: 60vh;">
         <app-gantt-poc-chart
           (create)="create($event)"
           [currentDate]="currentDate"
           [drivers]="drivers"
+          [trips]="trips"
         ></app-gantt-poc-chart>
       </div>
     </nz-card>

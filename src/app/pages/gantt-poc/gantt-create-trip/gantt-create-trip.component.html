@@ -2,14 +2,14 @@
   <nz-form-item>
     <nz-form-control>
       <nz-input-group >
-        <input type="text" nz-input formControlName="trip" placeholder="行程" />
+        <nz-select style="width: 100%;" nzShowSearch nzAllowClear nzPlaceHolder="Select a person" formControlName="trip">
+          <nz-option
+            *ngFor="let trip of trips"
+            [nzLabel]="trip.name"
+            [nzValue]="trip.name"
+          ></nz-option>
+        </nz-select>
       </nz-input-group>
     </nz-form-control>
-  </nz-form-item>
-  <nz-form-item>
-    <nz-time-picker formControlName="start" nzFormat="HH:mm" nzPlaceHolder="請選擇開始時間" style="width: 100%;"></nz-time-picker>
-  </nz-form-item>
-  <nz-form-item>
-    <nz-time-picker formControlName="end" nzFormat="HH:mm" nzPlaceHolder="請選擇結束時間" style="width: 100%;"></nz-time-picker>
   </nz-form-item>
 </form>

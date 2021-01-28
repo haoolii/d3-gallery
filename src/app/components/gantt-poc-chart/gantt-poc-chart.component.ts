@@ -1,4 +1,3 @@
-import { takeUntil } from 'rxjs/operators';
 import { Component, ElementRef, EventEmitter, Input, NgZone, OnInit, Output, ViewChild, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
 import { clone } from './clone';
@@ -11,7 +10,8 @@ import { D3BrushEvent } from 'd3';
 @Component({
   selector: 'app-gantt-poc-chart',
   templateUrl: './gantt-poc-chart.component.html',
-  styleUrls: ['./gantt-poc-chart.component.scss']
+  styleUrls: ['./gantt-poc-chart.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class GanttPocChartComponent implements OnInit {
   @ViewChild('svgRef') svgRef: ElementRef<any>;
@@ -21,6 +21,7 @@ export class GanttPocChartComponent implements OnInit {
   driverSource: Driver[] = [];
   driverSourceMap: { [key: string]: Driver} = {};
 
+  @Input() trips: Trip[] = []
   /**
    * 資料源
    */
@@ -176,6 +177,15 @@ export class GanttPocChartComponent implements OnInit {
    * 計算顏色
    */
   computeColor(): void {
+    /** 已經有產生Color就不需要重新產生 */
+    if (!this.color) {
+      /** _scale可算出key對應的[0, 1] */
+      let _scale = d3.scaleBand().domain(this.trips.map(trip => trip.name));
+      /** 顏色輸入[0, 1]之間可得出色碼 https://github.com/d3/d3-scale-chromatic (顏色的) */
+      this.color = (key: string) => d3.interpolateHcl('#007AFF', '#FFF500')(_scale(key));
+    }
+
+    console.log('this.color', this.color(this.trips[0].name));
   }
 
   /**
@@ -194,7 +204,7 @@ export class GanttPocChartComponent implements OnInit {
 
   renderAxis(): void {
     this.xAxisLayer.attr('class', 'axis x-axis').transition().duration(50).call(this.xAxis);
-    this.yAxisLayer.attr('class', 'axis x-axis').transition().duration(50).call(this.yAxis);
+    this.yAxisLayer.attr('class', 'axis y-axis').transition().duration(50).call(this.yAxis);
   }
 
   // TODO 一坨屎，需要優化
@@ -236,7 +246,6 @@ export class GanttPocChartComponent implements OnInit {
     }
   }
 
-
   bindingTrip(selection: d3.Selection<any, Trip, null, undefined>) {
     const tripEnterLayer = selection
                         .enter()
@@ -247,7 +256,7 @@ export class GanttPocChartComponent implements OnInit {
       .attr('y', this.yScale.bandwidth() * 0.1)
       .attr('height', this.yScale.bandwidth() * 0.8)
       .attr('width', d => this.xScale(d.end as Date) - this.xScale(d.start as Date))
-      .attr('fill', 'red')
+      .attr('fill', d => this.color(d.name))
 
     tripEnterLayer
       .append('text')
@@ -256,6 +265,7 @@ export class GanttPocChartComponent implements OnInit {
       .attr('y', d => `${this.yScale.bandwidth() * 0.7}`)
       .attr('dy', `-.35em`)
       .style("font-size", "10px")
+      .attr('fill', 'white')
   }
 
   bindingBrush(selection: d3.Selection<any, Driver, null, undefined>) {
@@ -274,7 +284,7 @@ export class GanttPocChartComponent implements OnInit {
             .transition()
             .duration(100)
             .call(event.target.move, x1 > x0 ? [x0, x1].map(thus.xScale) : null)
-
+            // https://github.com/d3/d3-brush/issues/10
             setTimeout(() => {
               thus.create.emit({
                 target: d,
@@ -282,20 +292,6 @@ export class GanttPocChartComponent implements OnInit {
                 done: () => d3.select(this).call(event.target.clear)
               })
             }, 200);
-
-
-          // // https://github.com/d3/d3-brush/issues/10
-          // if (!event.sourceEvent || !_selection || !selection) return;
-
-          // console.log(d3.select(this));
-
-          // const [x0, x1] = (_selection as any).map(d => d3.timeHour.every(12).round(thus.xScale.invert(d)));
-          // console.log(`x0 ${x0} x1 ${x1}`)
-          // console.log(event);
-          // d3.select(this).transition().call(event.target.move, x1 > x0 ? [x0, x1].map(thus.xScale) : null);
-
-
-
         })
         (selection)
 
@@ -379,21 +375,4 @@ export class GanttPocChartComponent implements OnInit {
   get svgViewBox(): string {
     return `0 0 ${this.viewBoxWidth} ${this.viewBoxHeight}`;
   }
-
-  trips = [
-    {
-      id: 0,
-      name: '台北多奇 -> 桃園機場'
-    },
-    {
-      id: 1,
-      name: '台中多奇 -> 桃園機場'
-    },
-    {
-      id: 2,
-      name: '台北轉運點 -> 桃園機場'
-    }
-  ]
-
-
 }

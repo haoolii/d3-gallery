@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { Component, Input, OnInit } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-gantt-create-trip',
@@ -8,10 +8,10 @@ import { FormBuilder } from '@angular/forms';
 })
 export class GanttCreateTripComponent implements OnInit {
 
+  @Input() trips = [];
+
   form = this.fb.group({
-    trip: [''],
-    start: [null],
-    end: [null]
+    trip: ['', [Validators.required]]
   })
 
   constructor(private fb: FormBuilder) { }

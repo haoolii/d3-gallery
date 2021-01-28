@@ -17,15 +17,16 @@ export class GanttPocComponent implements OnInit {
   }
 
   create(event): void {
-    console.log(event);
     const modelRef = this.modal.create({
       nzTitle: `新建行程 - ${event?.target?.driver}`,
       nzContent: GanttCreateTripComponent,
-      nzWidth: 400,
-      nzBodyStyle: { height: '200px'},
+      nzWidth: 300,
+      nzBodyStyle: { height: '100px'},
       nzMaskClosable: true,
       nzClosable: true,
-      nzComponentParams: {},
+      nzComponentParams: {
+        trips: this.trips
+      },
       nzFooter: [
         {
           label: '關閉',
@@ -35,10 +36,11 @@ export class GanttPocComponent implements OnInit {
           label: '新建',
           type: 'primary',
           onClick: componentInstance => {
+            if (componentInstance.form.invalid) return;
             // TODO 醜到爆
             let target = this.drivers.find(d => event.target.driver === d.driver)
             if (target) {
-              const { trip, start, end } = componentInstance.form.value;
+              const { trip } = componentInstance.form.value;
               target.trips.push({
                 name: trip,
                 start: event.duration[0],
@@ -47,7 +49,6 @@ export class GanttPocComponent implements OnInit {
             }
             this.drivers = this.drivers.slice();
             modelRef.destroy();
-
           }
         }
       ]
@@ -57,79 +58,49 @@ export class GanttPocComponent implements OnInit {
 
   currentDate = new Date('2021/01/28 17:00:00');
 
-  drivers2: Driver[] = [
+  trips = [
     {
-      driver: "Driver1",
-      trips: [
-        {
-          name: '台北轉運點 -> 桃園機場',
-          start: '2021/01/28 10:00:00',
-          end: '2021/01/28 12:00:00'
-        },
-        {
-          name: '桃園機場 -> 台中轉運點',
-          start: '2021/01/28 14:00:00',
-          end: '2021/01/28 20:00:00'
-        }
-      ]
+      id: 0,
+      name: '吃紅蘿蔔'
     },
     {
-      driver: "Driver2",
-      trips: [
-        {
-          name: '台中港 -> 高雄庫房',
-          start: '2021/01/28 05:00:00',
-          end: '2021/01/28 08:00:00'
-        },
-        {
-          name: '高雄轉運點 -> 台北集運點',
-          start: '2021/01/28 10:00:00',
-          end: '2021/01/28 17:00:00'
-        }
-      ]
+      id: 1,
+      name: '吃生菜'
     },
     {
-      driver: "Driver3",
-      trips: [
-        {
-          name: '台中港 -> 高雄庫房',
-          start: '2021/01/28 05:00:00',
-          end: '2021/01/28 08:00:00'
-        },
-        {
-          name: '高雄轉運點 -> 台北集運點',
-          start: '2021/01/28 10:00:00',
-          end: '2021/01/28 17:00:00'
-        }
-      ]
+      id: 2,
+      name: '開車'
     },
     {
-      driver: "Driver4",
-      trips: [
-        {
-          name: '台中港 -> 高雄庫房',
-          start: '2021/01/28 05:00:00',
-          end: '2021/01/28 08:00:00'
-        },
-        {
-          name: '高雄轉運點 -> 台北集運點',
-          start: '2021/01/28 10:00:00',
-          end: '2021/01/28 17:00:00'
-        }
-      ]
+      id: 3,
+      name: '打扮得漂漂亮亮'
+    },
+    {
+      id: 4,
+      name: '製造麻煩'
     }
+
   ]
+
   drivers =[
     {
-      driver: "Driver1",
+      driver: "馬鈴薯",
       trips: []
     },
     {
-      driver: "Driver2",
+      driver: "西羅摩",
       trips: []
     },
     {
-      driver: "Driver3",
+      driver: "阿比",
+      trips: []
+    },
+    {
+      driver: "巧克力",
+      trips: []
+    },
+    {
+      driver: "泰迪",
       trips: []
     }
   ]

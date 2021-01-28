@@ -11,6 +11,7 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
+import { NzSelectModule } from 'ng-zorro-antd/select';
 
 @NgModule({
   exports: [
@@ -25,7 +26,8 @@ import { NzTimePickerModule } from 'ng-zorro-antd/time-picker';
     NzMenuModule,
     NzFormModule,
     NzInputModule,
-    NzTimePickerModule
+    NzTimePickerModule,
+    NzSelectModule
   ]
 })
 export class NgZorroAntdModule { }
