@@ -1,3 +1,4 @@
+import { filter, map } from 'rxjs/operators';
 import { Component, ElementRef, EventEmitter, Input, NgZone, OnInit, Output, ViewChild, ViewEncapsulation } from '@angular/core';
 import * as d3 from 'd3';
 import { clone } from './clone';
@@ -6,6 +7,7 @@ import d3Tip from 'd3-tip';
 import { Driver } from './interfaces/driver';
 import { Trip } from './interfaces/trip';
 import { D3BrushEvent } from 'd3';
+import { fromEvent } from 'rxjs';
 
 @Component({
   selector: 'app-gantt-poc-chart',
@@ -15,8 +17,6 @@ import { D3BrushEvent } from 'd3';
 })
 export class GanttPocChartComponent implements OnInit {
   @ViewChild('svgRef') svgRef: ElementRef<any>;
-
-  private rootKEY = uuidv4();
 
   driverSource: Driver[] = [];
   driverSourceMap: { [key: string]: Driver} = {};
@@ -42,6 +42,9 @@ export class GanttPocChartComponent implements OnInit {
 
   /** 建立Trip事件 */
   @Output() create = new EventEmitter();
+
+  /** 刪除Trip事件 */
+  @Output() delete = new EventEmitter();
 
   /**
    * 寬度(default: 800)
@@ -77,15 +80,37 @@ export class GanttPocChartComponent implements OnInit {
   toolTip;
   timeFormate = d3.timeFormat('%Y-%m-%d %H:%M');
   brush: d3.BrushBehavior<any>;
+  selectedTrip: d3.Selection<d3.BaseType, Trip, any, any> = null;
 
   constructor(private zone: NgZone) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    fromEvent<KeyboardEvent>(window, 'keyup')
+      .pipe(
+        map(event => event.key === 'Delete'),
+        filter(isDelete => isDelete)
+      )
+      .subscribe(isDelete => {
+        if (!this.selectedTrip) return;
+        // 偷懶 這邊資料流還需要規劃一下 先硬刪
+        const trip = this.selectedTrip?.select('rect')?.data()[0];
 
-  ngAfterViewInit(): void {
-    // this.justGoFirst();
-    // this.go();
+        if (!trip) return;
+        const driverIndex = this.driverSource.findIndex(driver => driver.key === trip.parent);
+        const removeIndex = this.driverSource[driverIndex]?.trips.findIndex(trip => trip === trip)
+
+        this.delete.emit({
+          driverIndex,
+          removeIndex
+        });
+
+        this.selectedTrip.remove()
+
+        this.selectedTrip = null;
+      });
   }
+
+  ngAfterViewInit(): void {}
 
   justGoFirst(): void {
     const tipTplFn = (event, data) => `
@@ -170,7 +195,7 @@ export class GanttPocChartComponent implements OnInit {
         .axisTop<Date>(this.xScale)
         .tickSizeOuter(0)
         .tickSize(-this.canvasHeight)
-        .ticks(24,  d3.utcFormat("%H:%S"))
+        .ticks(24,  d3.utcFormat("%H"))
   }
 
   /**
@@ -184,8 +209,6 @@ export class GanttPocChartComponent implements OnInit {
       /** 顏色輸入[0, 1]之間可得出色碼 https://github.com/d3/d3-scale-chromatic (顏色的) */
       this.color = (key: string) => d3.interpolateHcl('#007AFF', '#FFF500')(_scale(key));
     }
-
-    console.log('this.color', this.color(this.trips[0].name));
   }
 
   /**
@@ -212,12 +235,12 @@ export class GanttPocChartComponent implements OnInit {
   renderTrips(): void {
     const trips = this.tripsLayer
       .selectAll('g.trip-items')
-      .data(this.driverSource);
+      .data(this.driverSource, (data: Driver) => data.key);
 
     /** UPDATE */
     trips
       .selectAll('g')
-      .data(d => d.trips)
+      .data(d => d.trips, (d: Trip) => d.key)
       .call(selection =>　this.bindingTrip(selection as any))
 
     /** ENTER */
@@ -228,7 +251,7 @@ export class GanttPocChartComponent implements OnInit {
       .append('g')
       .classed('trip-items', true)
       .selectAll('g')
-      .data(d => d.trips)
+      .data(d => d.trips, (d: Trip) => d.key)
       .call(selection =>　this.bindingTrip(selection as any))
 
     /** EXIT */
@@ -257,6 +280,23 @@ export class GanttPocChartComponent implements OnInit {
       .attr('height', this.yScale.bandwidth() * 0.8)
       .attr('width', d => this.xScale(d.end as Date) - this.xScale(d.start as Date))
       .attr('fill', d => this.color(d.name))
+      .attr('fill-opacity', 0.8)
+      .on('click', (event, d) => {
+
+        if (this.selectedTrip) {
+          this.selectedTrip.classed('selected', false);
+
+          if (this.selectedTrip.node() === event.target.parentElement) {
+            return  this.selectedTrip = null;
+          }
+
+          this.selectedTrip = null;
+        }
+
+
+        this.selectedTrip = d3.select(event.target.parentElement);
+        this.selectedTrip.classed('selected', true);
+      })
 
     tripEnterLayer
       .append('text')
@@ -310,7 +350,8 @@ export class GanttPocChartComponent implements OnInit {
       ...trip,
       start: new Date(trip.start),
       end: new Date(trip.end),
-      parent: driverKey
+      parent: driverKey,
+      key: uuidv4()
     }))
   }
   /**

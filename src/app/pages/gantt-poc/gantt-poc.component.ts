@@ -56,6 +56,13 @@ export class GanttPocComponent implements OnInit {
     modelRef.afterClose.subscribe(_ => event.done())
   }
 
+  delete(event): void {
+    console.log('delet', event);
+    this.drivers[event.driverIndex]
+        .trips.splice(event.removeIndex, 1)
+    this.drivers = this.drivers.slice();
+  }
+
   currentDate = new Date('2021/01/28 17:00:00');
 
   trips = [
@@ -79,7 +86,6 @@ export class GanttPocComponent implements OnInit {
       id: 4,
       name: '製造麻煩'
     }
-
   ]
 
   drivers =[
@@ -101,6 +107,18 @@ export class GanttPocComponent implements OnInit {
     },
     {
       driver: "泰迪",
+      trips: []
+    },
+    {
+      driver: "Josh",
+      trips: []
+    },
+    {
+      driver: "Joe",
+      trips: []
+    },
+    {
+      driver: "EP",
       trips: []
     }
   ]
