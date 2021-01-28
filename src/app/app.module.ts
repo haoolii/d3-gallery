@@ -42,7 +42,9 @@ registerLocaleData(zh);
         path: 'gantt-poc',
         component: GanttPocComponent
       }
-    ])
+    ], {
+      useHash: true
+    })
   ],
   providers: [{ provide: NZ_I18N, useValue: zh_TW }],
   bootstrap: [AppComponent]
